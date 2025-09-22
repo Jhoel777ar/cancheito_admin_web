@@ -1,0 +1,56 @@
+"use client"
+
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { userSignupsData } from "@/lib/mock-data"
+
+export function OverviewChart() {
+  return (
+    <Card className="bg-card/80 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle>Overview</CardTitle>
+        <CardDescription>User signups over the last 7 days.</CardDescription>
+      </CardHeader>
+      <CardContent className="pl-2">
+        <ResponsiveContainer width="100%" height={350}>
+          <LineChart data={userSignupsData}>
+            <XAxis
+              dataKey="date"
+              stroke="#888888"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="#888888"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "hsl(var(--background))",
+                borderColor: "hsl(var(--border))",
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="signups"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+              dot={{ r: 4, fill: "hsl(var(--primary))" }}
+              activeDot={{ r: 8, style: { stroke: "hsl(var(--primary))", strokeWidth: 2 } }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  )
+}
