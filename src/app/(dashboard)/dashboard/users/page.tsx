@@ -13,15 +13,17 @@ async function getUsersFromFirebase(): Promise<User[]> {
     const usersData = snapshot.val();
     return Object.keys(usersData).map(key => {
       const fbUser: FirebaseUser = usersData[key];
+      
+      // Default values for potentially missing fields
+      const registrationTime = fbUser.tiempo_registro ? new Date(fbUser.tiempo_registro) : new Date();
+
       return {
-        id: fbUser.uid,
-        fullName: fbUser.nombre_completo,
-        email: fbUser.email,
-        registrationDate: format(new Date(fbUser.tiempo_registro), 'yyyy-MM-dd'),
-        profileUrl: fbUser.fotoPerfilUrl,
-        // Firebase Auth doesn't have a built-in 'suspended' flag like this, 
-        // you might need to manage this state in your DB.
-        // For now, we'll default to true (active).
+        id: fbUser.uid || key,
+        fullName: fbUser.nombre_completo || 'Sin nombre',
+        email: fbUser.email || 'Sin email',
+        registrationDate: format(registrationTime, 'yyyy-MM-dd'),
+        profileUrl: fbUser.fotoPerfilUrl || '',
+        // We'll assume users are active unless a specific field says otherwise.
         isVerified: true, 
       };
     });

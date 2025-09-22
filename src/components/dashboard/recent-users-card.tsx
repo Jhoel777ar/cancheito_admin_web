@@ -10,9 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { User } from "@/lib/types"
+import { FirebaseUser, User } from "@/lib/types"
+import { db } from "@/lib/firebase";
+import { ref, get, query, orderByChild, limitToLast } from "firebase/database";
+import { format } from "date-fns";
 
 function getInitials(name: string) {
+  if (!name) return "S/N";
   return name
     .split(' ')
     .map(n => n[0])
@@ -20,20 +24,40 @@ function getInitials(name: string) {
     .join('');
 }
 
-// NOTE: This component still uses mock data. 
-// For a real application, you would fetch recent users from Firebase.
-const recentUsers: User[] = [
-  // You can manually add a few users here for display purposes if needed
-  // Or implement a fetch similar to the UsersPage
-];
+async function getRecentUsers(): Promise<User[]> {
+  const usersRef = query(ref(db, 'usuarios'), orderByChild('tiempo_registro'), limitToLast(5));
+  const snapshot = await get(usersRef);
 
-export function RecentUsersCard() {
+  if (snapshot.exists()) {
+    const usersData = snapshot.val();
+    const usersList = Object.keys(usersData).map(key => {
+      const fbUser: FirebaseUser = usersData[key];
+      const registrationTime = fbUser.tiempo_registro ? new Date(fbUser.tiempo_registro) : new Date();
+      return {
+        id: fbUser.uid || key,
+        fullName: fbUser.nombre_completo || 'Sin nombre',
+        email: fbUser.email || 'Sin email',
+        registrationDate: format(registrationTime, 'yyyy-MM-dd'),
+        profileUrl: fbUser.fotoPerfilUrl || '',
+        isVerified: true,
+      };
+    });
+    // The data is returned in ascending order, so we reverse it to show the most recent first
+    return usersList.reverse();
+  }
+  return [];
+}
+
+
+export async function RecentUsersCard() {
+  const recentUsers = await getRecentUsers();
+
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
         <CardTitle>Recent Registrations</CardTitle>
         <CardDescription>
-          The latest users who signed up. (Currently static)
+          The 5 most recent users who signed up.
         </CardDescription>
       </CardHeader>
       <CardContent>
