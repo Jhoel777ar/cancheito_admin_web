@@ -11,8 +11,11 @@ async function getUsersFromFirebase(): Promise<User[]> {
 
   if (snapshot.exists()) {
     const usersData = snapshot.val();
-    return Object.keys(usersData).map(key => {
-      const fbUser: FirebaseUser = usersData[key];
+    // The data might be nested under another key, so we handle that.
+    const userList = (usersData.usuarios) ? usersData.usuarios : usersData;
+
+    return Object.keys(userList).map(key => {
+      const fbUser: FirebaseUser = userList[key];
       
       // Default values for potentially missing fields
       const registrationTime = fbUser.tiempo_registro ? new Date(fbUser.tiempo_registro) : new Date();
@@ -24,7 +27,7 @@ async function getUsersFromFirebase(): Promise<User[]> {
         registrationDate: format(registrationTime, 'yyyy-MM-dd'),
         profileUrl: fbUser.fotoPerfilUrl || '',
         // We'll assume users are active unless a specific field says otherwise.
-        isVerified: true, 
+        isVerified: fbUser.isVerified !== undefined ? fbUser.isVerified : true,
       };
     });
   }
