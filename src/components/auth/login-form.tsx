@@ -17,6 +17,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -38,30 +41,39 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    // Simulate API call to Firebase
-    setTimeout(() => {
-      // Mocking Firebase Realtime Database check for 'usuario_verificado'
-      if (data.email.toLowerCase() === 'suspended@admin.com' && data.password === 'password') {
-        toast({
-          variant: "destructive",
-          title: "Account Suspended",
-          description: "Your account is currently suspended. Please contact support.",
-        });
-        setIsLoading(false);
-      } else if (data.email.toLowerCase() === 'admin@admin.com' && data.password === 'password') {
-        // Successful login
-        router.push('/dashboard');
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: "Invalid email or password.",
-        });
-        setIsLoading(false);
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      let title = "Login Failed";
+      let description = "An unexpected error occurred. Please try again.";
+
+      switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          title = "Invalid Credentials";
+          description = "The email or password you entered is incorrect.";
+          break;
+        case 'auth/user-disabled':
+          title = "Account Suspended";
+          description = "Your account has been disabled. Please contact support.";
+          break;
+        default:
+          console.error("Firebase Auth Error:", error);
+          break;
       }
-    }, 1500);
+      
+      toast({
+        variant: "destructive",
+        title: title,
+        description: description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -76,7 +88,7 @@ export function LoginForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="admin@admin.com"
+                  placeholder="admin@example.com"
                   {...field}
                   disabled={isLoading}
                 />

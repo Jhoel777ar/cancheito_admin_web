@@ -3,19 +3,8 @@ import { subDays, format } from 'date-fns';
 
 const now = new Date();
 
-export const mockUsers: User[] = [
-  { id: 'usr_1', fullName: 'Elena Rodriguez', email: 'elena.rodriguez@example.com', registrationDate: format(subDays(now, 5), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/1/100/100', isVerified: true },
-  { id: 'usr_2', fullName: 'Marcus Chen', email: 'marcus.chen@example.com', registrationDate: format(subDays(now, 12), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/2/100/100', isVerified: true },
-  { id: 'usr_3', fullName: 'Aisha Khan', email: 'aisha.khan@example.com', registrationDate: format(subDays(now, 25), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/3/100/100', isVerified: false },
-  { id: 'usr_4', fullName: 'David Smith', email: 'david.smith@example.com', registrationDate: format(subDays(now, 45), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/4/100/100', isVerified: true },
-  { id: 'usr_5', fullName: 'Sophia Dubois', email: 'sophia.dubois@example.com', registrationDate: format(subDays(now, 60), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/5/100/100', isVerified: false },
-  { id: 'usr_6', fullName: 'Carlos Gomez', email: 'carlos.gomez@example.com', registrationDate: format(subDays(now, 90), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/6/100/100', isVerified: true },
-  { id: 'usr_7', fullName: 'Freya Andersen', email: 'freya.andersen@example.com', registrationDate: format(subDays(now, 120), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/7/100/100', isVerified: true },
-  { id: 'usr_8', fullName: 'Kenji Tanaka', email: 'kenji.tanaka@example.com', registrationDate: format(subDays(now, 150), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/8/100/100', isVerified: false },
-  { id: 'usr_9', fullName: 'Olivia Martinez', email: 'olivia.martinez@example.com', registrationDate: format(subDays(now, 180), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/9/100/100', isVerified: true },
-  { id: 'usr_10', fullName: 'Liam O\'Connell', email: 'liam.oconnell@example.com', registrationDate: format(subDays(now, 200), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/10/100/100', isVerified: true },
-  { id: 'usr_11', fullName: 'Suspended User', email: 'suspended@admin.com', registrationDate: format(subDays(now, 210), 'yyyy-MM-dd'), profileUrl: 'https://picsum.photos/seed/11/100/100', isVerified: false },
-];
+// This data is now fetched from Firebase in app/(dashboard)/dashboard/users/page.tsx
+export const mockUsers: User[] = [];
 
 export const mockCompanies: Company[] = [
   { id: 'com_1', name: 'Innovatech Solutions', industry: 'Technology', location: 'San Francisco, USA', foundedDate: '2015-06-01', website: 'innovatech.com' },

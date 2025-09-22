@@ -8,6 +8,16 @@ export type User = {
   lastStateChange?: string;
 };
 
+export type FirebaseUser = {
+  uid: string;
+  nombre_completo: string;
+  email: string;
+  tiempo_registro: number;
+  fotoPerfilUrl: string;
+  isVerified: boolean; // Assuming you'll manage this state
+};
+
+
 export type Company = {
   id: string;
   name: string;
