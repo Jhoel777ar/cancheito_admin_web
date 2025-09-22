@@ -90,8 +90,11 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="text-primary" /> {alertContent.title}
+            <AlertDialogTitle>
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="text-primary" />
+                {alertContent.title}
+              </div>
             </AlertDialogTitle>
             <AlertDialogDescription>
               {alertContent.description}
