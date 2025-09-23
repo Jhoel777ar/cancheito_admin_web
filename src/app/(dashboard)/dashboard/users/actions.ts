@@ -2,6 +2,9 @@
 
 import { accountControlErrorReasoning, AccountControlErrorReasoningInput } from '@/ai/flows/account-control-error-reasoning';
 import type { User } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import { ref, update } from 'firebase/database';
+import { revalidatePath } from 'next/cache';
 
 export async function getAccountControlReasoning(actionType: 'activate' | 'suspend', user: User) {
   try {
@@ -16,4 +19,34 @@ export async function getAccountControlReasoning(actionType: 'activate' | 'suspe
     console.error("AI reasoning error:", error);
     return { success: false, error: "Failed to get reasoning from AI. Please try again." };
   }
+}
+
+export async function updateUser(userId: string, data: Partial<User>) {
+    if (!userId) {
+        return { success: false, error: "User ID is missing." };
+    }
+
+    try {
+        const userRef = ref(db, `Usuarios/${userId}`);
+        
+        const updateData: any = {
+            nombre_completo: data.fullName,
+            email: data.email,
+            experiencia: data.experience,
+            formacion: data.education,
+            tipoUsuario: data.userType,
+            ubicacion: data.location,
+        };
+
+        await update(userRef, updateData);
+
+        // Revalidate the users page to show fresh data
+        revalidatePath('/dashboard/users');
+
+        return { success: true };
+
+    } catch (error) {
+        console.error("Firebase update error:", error);
+        return { success: false, error: "Failed to update user in Firebase." };
+    }
 }

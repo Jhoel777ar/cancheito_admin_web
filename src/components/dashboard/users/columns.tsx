@@ -36,7 +36,7 @@ export const userColumns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "fullName",
-    header: "User",
+    header: "Usuario",
     cell: ({ row }) => {
       const user = row.original;
       return (
@@ -61,7 +61,7 @@ export const userColumns: ColumnDef<User>[] = [
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Status
+            Estado
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
@@ -70,26 +70,26 @@ export const userColumns: ColumnDef<User>[] = [
       const isVerified = row.getValue("isVerified");
       return (
         <Badge variant={isVerified ? "secondary" : "destructive"}>
-          {isVerified ? "Active" : "Suspended"}
+          {isVerified ? "Activo" : "Suspendido"}
         </Badge>
       );
     },
   },
   {
     accessorKey: "userType",
-    header: "User Type",
+    header: "Tipo de Usuario",
   },
   {
     accessorKey: "location",
-    header: "Location",
+    header: "Ubicación",
   },
   {
     accessorKey: "education",
-    header: "Education",
+    header: "Formación",
   },
   {
     accessorKey: "experience",
-    header: "Experience",
+    header: "Experiencia",
   },
   {
     accessorKey: "cvUrl",
@@ -112,7 +112,7 @@ export const userColumns: ColumnDef<User>[] = [
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Registration Date
+            Fecha de Registro
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )

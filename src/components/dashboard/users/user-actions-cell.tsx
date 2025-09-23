@@ -25,6 +25,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
 import { getAccountControlReasoning } from "@/app/(dashboard)/dashboard/users/actions";
+import { UserEditDialog } from "./user-edit-dialog";
+
 
 interface UserActionsCellProps {
   row: Row<User>;
@@ -35,6 +37,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alertContent, setAlertContent] = useState({
     title: "",
@@ -53,22 +56,22 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
 
     if (result.success) {
       setAlertContent({
-        title: `Confirm ${actionType}`,
-        description: result.reasoning || "Are you sure you want to proceed?",
+        title: `Confirmar ${actionType === 'activate' ? 'Activación' : 'Suspensión'}`,
+        description: result.reasoning || "¿Estás seguro de que quieres proceder?",
         action: () => {
           // Here you would call the actual Firebase update
           console.log(`${actionType} user:`, user.email);
           toast({
-            title: `User ${actionType}d`,
-            description: `${user.fullName}'s account has been ${actionType}d.`,
+            title: `Usuario ${actionType === 'activate' ? 'Activado' : 'Suspendido'}`,
+            description: `La cuenta de ${user.fullName} ha sido ${actionType === 'activate' ? 'activada' : 'suspendida'}.`,
           });
         },
-        actionLabel: `Confirm ${actionType}`,
+        actionLabel: `Confirmar ${actionType === 'activate' ? 'Activación' : 'Suspensión'}`,
       });
     } else {
       setAlertContent({
         title: "Error",
-        description: result.error || "An unknown error occurred.",
+        description: result.error || "Ocurrió un error desconocido.",
         action: () => {},
         actionLabel: "OK",
       });
@@ -77,13 +80,6 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
     setIsAlertOpen(true);
   };
 
-  const handleEdit = () => {
-    // In a real app, this would open an edit modal/form
-    toast({
-      title: "Edit User",
-      description: `Editing functionality for ${user.fullName} is not implemented in this demo.`,
-    });
-  }
 
   return (
     <>
@@ -101,7 +97,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={alertContent.action}>
               {alertContent.actionLabel}
             </AlertDialogAction>
@@ -109,10 +105,12 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
         </AlertDialogContent>
       </AlertDialog>
 
+      <UserEditDialog user={user} isOpen={isEditOpen} setIsOpen={setIsEditOpen} />
+
       <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="h-8 w-8 p-0" disabled={isLoading}>
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">Abrir menú</span>
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -121,9 +119,9 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={handleEdit}>
-            <Edit className="mr-2 h-4 w-4" /> Edit
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" /> Editar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {user.isVerified ? (
@@ -131,11 +129,11 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
               className="text-destructive focus:text-destructive"
               onClick={() => handleActionClick("suspend")}
             >
-              Suspend
+              Suspender
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={() => handleActionClick("activate")}>
-              Activate
+              Activar
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
