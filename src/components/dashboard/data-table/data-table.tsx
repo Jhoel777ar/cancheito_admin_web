@@ -70,14 +70,14 @@ export function DataTable<TData, TValue>({
     <Card className="bg-card/80 backdrop-blur-sm">
       <div className="space-y-4 p-4">
         <DataTableToolbar table={table} filterColumn={filterColumn} placeholder={filterPlaceholder} />
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} style={{ whiteSpace: 'nowrap' }}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
