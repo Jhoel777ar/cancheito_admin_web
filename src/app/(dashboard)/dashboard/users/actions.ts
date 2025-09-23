@@ -4,7 +4,7 @@
 import { accountControlErrorReasoning, AccountControlErrorReasoningInput } from '@/ai/flows/account-control-error-reasoning';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
-import { adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth } from '@/lib/firebase-admin';
 import { ref, update } from 'firebase/database';
 import { revalidatePath } from 'next/cache';
 
@@ -90,12 +90,6 @@ export async function updateUserAccountState(userId: string, newState: 'Activa' 
 }
 
 export async function updateUserPassword(userId: string, newPassword: string) {
-    // This check is now the main guard.
-    if (!adminAuth) {
-        console.error("Firebase Admin Auth is not available. Check server environment variables and initialization.");
-        return { success: false, error: "La configuración del administrador de Firebase no está disponible. Revisa las variables de entorno del servidor." };
-    }
-
     if (!userId) {
         return { success: false, error: "User ID is missing." };
     }
@@ -104,6 +98,7 @@ export async function updateUserPassword(userId: string, newPassword: string) {
     }
 
     try {
+        const adminAuth = getAdminAuth();
         await adminAuth.updateUser(userId, {
             password: newPassword,
         });
@@ -113,6 +108,8 @@ export async function updateUserPassword(userId: string, newPassword: string) {
         let errorMessage = "No se pudo actualizar la contraseña del usuario.";
         if (error.code === 'auth/user-not-found') {
             errorMessage = "El usuario no fue encontrado en Firebase Authentication.";
+        } else if (error.message.includes('FIREBASE_ADMIN_SDK_CONFIG')) {
+            errorMessage = "La configuración del administrador de Firebase no está disponible. Revisa las variables de entorno del servidor.";
         }
         return { success: false, error: errorMessage };
     }
