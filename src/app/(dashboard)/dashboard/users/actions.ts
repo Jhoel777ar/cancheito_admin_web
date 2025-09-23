@@ -1,7 +1,6 @@
 
 "use server";
 
-import "dotenv/config";
 import { accountControlErrorReasoning, AccountControlErrorReasoningInput } from '@/ai/flows/account-control-error-reasoning';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
