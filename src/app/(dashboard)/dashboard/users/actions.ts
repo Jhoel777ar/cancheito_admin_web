@@ -1,6 +1,7 @@
 
 "use server";
 
+import "dotenv/config";
 import { accountControlErrorReasoning, AccountControlErrorReasoningInput } from '@/ai/flows/account-control-error-reasoning';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
@@ -110,7 +111,7 @@ export async function updateUserPassword(userId: string, newPassword: string) {
         console.error("Firebase admin password update error:", error);
         let errorMessage = "No se pudo actualizar la contraseña del usuario.";
 
-        if (error.message.includes('FIREBASE_ADMIN_SDK_CONFIG')) {
+        if (error.message && error.message.includes('FIREBASE_ADMIN_SDK_CONFIG')) {
             errorMessage = "La configuración del administrador de Firebase no está disponible. Revisa las variables de entorno del servidor.";
         } else if (error.code === 'auth/user-not-found') {
             errorMessage = "El usuario no fue encontrado en Firebase Authentication.";
