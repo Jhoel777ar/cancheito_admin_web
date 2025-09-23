@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@/lib/types";
 import { UserActionsCell } from "./user-actions-cell";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, FileText } from "lucide-react";
 
 function getInitials(name: string) {
   if (!name) return "";
@@ -73,6 +73,35 @@ export const userColumns: ColumnDef<User>[] = [
           {isVerified ? "Active" : "Suspended"}
         </Badge>
       );
+    },
+  },
+  {
+    accessorKey: "userType",
+    header: "User Type",
+  },
+  {
+    accessorKey: "location",
+    header: "Location",
+  },
+  {
+    accessorKey: "education",
+    header: "Education",
+  },
+  {
+    accessorKey: "experience",
+    header: "Experience",
+  },
+  {
+    accessorKey: "cvUrl",
+    header: "CV",
+    cell: ({ row }) => {
+      const cvUrl = row.getValue("cvUrl") as string;
+      if (!cvUrl) return <span>-</span>;
+      return (
+        <a href={cvUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+          <FileText className="inline-block" />
+        </a>
+      )
     },
   },
   {

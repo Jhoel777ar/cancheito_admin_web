@@ -6,7 +6,6 @@ import type { FirebaseUser, User } from "@/lib/types";
 import { format } from 'date-fns';
 
 async function getUsersFromFirebase(): Promise<User[]> {
-  // Corrected path to 'Usuarios' with a capital 'U'
   const usersRef = ref(db, 'Usuarios'); 
   const snapshot = await get(usersRef);
   const usersList: User[] = [];
@@ -16,7 +15,6 @@ async function getUsersFromFirebase(): Promise<User[]> {
       const fbUser: FirebaseUser = childSnapshot.val();
       const userKey = childSnapshot.key;
 
-      // Check if the entry is a valid user object by looking for an email or uid
       if (fbUser && (fbUser.email || fbUser.uid)) {
         const registrationTime = fbUser.tiempo_registro ? new Date(fbUser.tiempo_registro) : new Date(0);
 
@@ -26,7 +24,12 @@ async function getUsersFromFirebase(): Promise<User[]> {
           email: fbUser.email || 'Sin email',
           registrationDate: registrationTime.getTime() === 0 ? 'Fecha desconocida' : format(registrationTime, 'yyyy-MM-dd'),
           profileUrl: fbUser.fotoPerfilUrl || '',
-          isVerified: fbUser.isVerified !== undefined ? fbUser.isVerified : true,
+          isVerified: fbUser.usuario_verificado !== undefined ? fbUser.usuario_verificado : true, // Default to true if not present
+          experience: fbUser.experiencia || 'No especificado',
+          education: fbUser.formacion || 'No especificado',
+          userType: fbUser.tipoUsuario || 'No especificado',
+          location: fbUser.ubicacion || 'No especificado',
+          cvUrl: fbUser.cvUrl || '',
         };
         usersList.push(user);
       }

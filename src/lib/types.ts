@@ -6,6 +6,11 @@ export type User = {
   profileUrl: string;
   isVerified: boolean;
   lastStateChange?: string;
+  experience: string;
+  education: string;
+  userType: string;
+  location: string;
+  cvUrl: string;
 };
 
 export type FirebaseUser = {
@@ -14,7 +19,12 @@ export type FirebaseUser = {
   email: string;
   tiempo_registro: number;
   fotoPerfilUrl: string;
-  isVerified: boolean; // Assuming you'll manage this state
+  usuario_verificado?: boolean; // Corresponds to isVerified
+  experiencia?: string;
+  formacion?: string;
+  tipoUsuario?: string;
+  ubicacion?: string;
+  cvUrl?: string;
 };
 
 
