@@ -1,17 +1,17 @@
 
 import admin from 'firebase-admin';
 
-let adminAuth: admin.auth.Auth | undefined;
+let adminAuth: admin.auth.Auth | null = null;
 
-// This function ensures the admin app is initialized only once.
-function initializeAdminApp() {
+function initializeAdminApp(): admin.app.App | null {
   if (admin.apps.length > 0) {
     return admin.apps[0];
   }
 
   const serviceAccountString = process.env.FIREBASE_ADMIN_SDK_CONFIG;
   if (!serviceAccountString) {
-    throw new Error('Firebase Admin SDK Error: La variable de entorno FIREBASE_ADMIN_SDK_CONFIG no está configurada.');
+    console.error('Firebase Admin SDK Error: La variable de entorno FIREBASE_ADMIN_SDK_CONFIG no está configurada.');
+    return null;
   }
 
   try {
@@ -21,17 +21,17 @@ function initializeAdminApp() {
       databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
     });
   } catch (error: any) {
-    console.error('Firebase Admin SDK initialization error:', error.message);
-    throw new Error('Error al analizar las credenciales del SDK de Firebase Admin. Revisa el formato del JSON en la variable de entorno.');
+    console.error('Firebase Admin SDK initialization error: Error al analizar las credenciales. Revisa el formato del JSON en la variable de entorno.', error.message);
+    return null;
   }
 }
 
-// Export a function that returns the auth instance.
-// This ensures initialization happens on first use.
-export function getAdminAuth(): admin.auth.Auth {
+export function getAdminAuth(): admin.auth.Auth | null {
   if (!adminAuth) {
-    initializeAdminApp();
-    adminAuth = admin.auth();
+    const app = initializeAdminApp();
+    if (app) {
+      adminAuth = app.auth();
+    }
   }
   return adminAuth;
 }

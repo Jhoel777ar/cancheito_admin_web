@@ -99,6 +99,9 @@ export async function updateUserPassword(userId: string, newPassword: string) {
 
     try {
         const adminAuth = getAdminAuth();
+        if (!adminAuth) {
+          throw new Error('FIREBASE_ADMIN_SDK_CONFIG_ERROR');
+        }
         await adminAuth.updateUser(userId, {
             password: newPassword,
         });
@@ -106,11 +109,18 @@ export async function updateUserPassword(userId: string, newPassword: string) {
     } catch (error: any) {
         console.error("Firebase admin password update error:", error);
         let errorMessage = "No se pudo actualizar la contraseña del usuario.";
-        if (error.code === 'auth/user-not-found') {
-            errorMessage = "El usuario no fue encontrado en Firebase Authentication.";
-        } else if (error.message.includes('FIREBASE_ADMIN_SDK_CONFIG')) {
+
+        if (error.message.includes('FIREBASE_ADMIN_SDK_CONFIG')) {
             errorMessage = "La configuración del administrador de Firebase no está disponible. Revisa las variables de entorno del servidor.";
+        } else if (error.code === 'auth/user-not-found') {
+            errorMessage = "El usuario no fue encontrado en Firebase Authentication.";
+        } else if (error.code) {
+            // Catch other Firebase specific errors
+            errorMessage = `Error: ${error.code} - ${error.message}`;
+        } else if (error.message) {
+            errorMessage = error.message;
         }
+
         return { success: false, error: errorMessage };
     }
 }
