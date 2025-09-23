@@ -3,6 +3,7 @@
 import { accountControlErrorReasoning, AccountControlErrorReasoningInput } from '@/ai/flows/account-control-error-reasoning';
 import type { User } from '@/lib/types';
 import { db } from '@/lib/firebase';
+import { adminAuth } from '@/lib/firebase-admin';
 import { ref, update } from 'firebase/database';
 import { revalidatePath } from 'next/cache';
 
@@ -84,5 +85,28 @@ export async function updateUserAccountState(userId: string, newState: 'Activa' 
     } catch (error) {
         console.error("Firebase account state update error:", error);
         return { success: false, error: "Failed to update user account state." };
+    }
+}
+
+export async function updateUserPassword(userId: string, newPassword: string) {
+    if (!userId) {
+        return { success: false, error: "User ID is missing." };
+    }
+     if (!newPassword || newPassword.length < 6) {
+        return { success: false, error: "La nueva contraseña debe tener al menos 6 caracteres." };
+    }
+
+    try {
+        await adminAuth.updateUser(userId, {
+            password: newPassword,
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error("Firebase admin password update error:", error);
+        let errorMessage = "No se pudo actualizar la contraseña del usuario.";
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = "El usuario no fue encontrado en Firebase Authentication.";
+        }
+        return { success: false, error: errorMessage };
     }
 }

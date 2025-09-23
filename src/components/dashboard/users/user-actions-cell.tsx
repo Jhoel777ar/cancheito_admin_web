@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, Loader2, AlertTriangle, Edit } from "lucide-react";
+import { MoreHorizontal, Loader2, AlertTriangle, Edit, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
 import { getAccountControlReasoning, updateUserAccountState } from "@/app/(dashboard)/dashboard/users/actions";
 import { UserEditDialog } from "./user-edit-dialog";
+import { ChangePasswordDialog } from "./change-password-dialog";
 
 
 interface UserActionsCellProps {
@@ -38,6 +39,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alertContent, setAlertContent] = useState({
     title: "",
@@ -51,6 +53,8 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
     const newState = actionType === 'activate' ? 'Activa' : 'Desactivada';
     const result = await updateUserAccountState(user.id, newState);
     setIsLoading(false);
+    setIsAlertOpen(false);
+
 
     if (result.success) {
       toast({
@@ -85,7 +89,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
       setAlertContent({
         title: "Error de IA",
         description: result.error || "Ocurrió un error desconocido al obtener el razonamiento.",
-        action: () => {},
+        action: () => setIsAlertOpen(false),
         actionLabel: "OK",
       });
     }
@@ -119,6 +123,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
       </AlertDialog>
 
       <UserEditDialog user={user} isOpen={isEditOpen} setIsOpen={setIsEditOpen} />
+      <ChangePasswordDialog user={user} isOpen={isPasswordDialogOpen} setIsOpen={setIsPasswordDialogOpen} />
 
       <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <DropdownMenuTrigger asChild>
@@ -135,6 +140,9 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
             <Edit className="mr-2 h-4 w-4" /> Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsPasswordDialogOpen(true)}>
+            <KeyRound className="mr-2 h-4 w-4" /> Cambiar Contraseña
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {user.accountState === 'Activa' ? (
