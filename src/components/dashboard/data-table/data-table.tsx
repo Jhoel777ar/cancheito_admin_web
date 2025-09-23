@@ -31,6 +31,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   filterColumn: string
+  secondaryFilterColumn?: string
   filterPlaceholder?: string
 }
 
@@ -38,6 +39,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   filterColumn,
+  secondaryFilterColumn,
   filterPlaceholder,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({})
@@ -45,6 +47,7 @@ export function DataTable<TData, TValue>({
     []
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [globalFilter, setGlobalFilter] = React.useState('')
 
   const table = useReactTable({
     data,
@@ -53,11 +56,13 @@ export function DataTable<TData, TValue>({
       sorting,
       rowSelection,
       columnFilters,
+      globalFilter,
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -66,11 +71,22 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  // This allows filtering by either fullName or email from the same input
+   const handleFilterChange = (value: string) => {
+    table.setGlobalFilter(value);
+  };
+
+
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <div className="space-y-4 p-4">
-        <DataTableToolbar table={table} filterColumn={filterColumn} placeholder={filterPlaceholder} />
-        <div className="relative rounded-md border">
+        <DataTableToolbar 
+          table={table}
+          onFilterChange={handleFilterChange}
+          placeholder={filterPlaceholder}
+          filterValue={globalFilter}
+        />
+        <div className="relative w-full overflow-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -113,7 +129,7 @@ export function DataTable<TData, TValue>({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    No hay resultados.
                   </TableCell>
                 </TableRow>
               )}

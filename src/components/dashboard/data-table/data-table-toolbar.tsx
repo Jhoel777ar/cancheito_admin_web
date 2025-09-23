@@ -5,24 +5,23 @@ import { Input } from "@/components/ui/input"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
-  filterColumn: string,
   placeholder?: string
+  filterValue: string
+  onFilterChange: (value: string) => void
 }
 
 export function DataTableToolbar<TData>({
-  table,
-  filterColumn,
-  placeholder = "Filter items..."
+  placeholder = "Filtrar items...",
+  filterValue,
+  onFilterChange,
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder={placeholder}
-          value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-          }
+          value={filterValue}
+          onChange={(event) => onFilterChange(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
       </div>

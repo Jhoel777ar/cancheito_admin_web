@@ -40,7 +40,7 @@ export async function updateUser(userId: string, data: Partial<User>) {
 
         await update(userRef, updateData);
 
-        // Revalidate the users page to show fresh data
+        // Revalidate the users page to show fresh data. Not strictly necessary with real-time listeners, but good for robustness.
         revalidatePath('/dashboard/users');
 
         return { success: true };
@@ -48,5 +48,25 @@ export async function updateUser(userId: string, data: Partial<User>) {
     } catch (error) {
         console.error("Firebase update error:", error);
         return { success: false, error: "Failed to update user in Firebase." };
+    }
+}
+
+
+export async function updateUserVerification(userId: string, isVerified: boolean) {
+    if (!userId) {
+        return { success: false, error: "User ID is missing." };
+    }
+
+    try {
+        const userRef = ref(db, `Usuarios/${userId}`);
+        await update(userRef, {
+            usuario_verificado: isVerified
+        });
+        
+        return { success: true };
+
+    } catch (error) {
+        console.error("Firebase verification update error:", error);
+        return { success: false, error: "Failed to update user verification status." };
     }
 }

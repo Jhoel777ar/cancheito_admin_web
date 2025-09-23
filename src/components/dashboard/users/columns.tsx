@@ -8,11 +8,32 @@ import { User } from "@/lib/types";
 import { UserActionsCell } from "./user-actions-cell";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, FileText } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { updateUserVerification } from "@/app/(dashboard)/dashboard/users/actions";
+import { toast } from "@/hooks/use-toast";
+
 
 function getInitials(name: string) {
   if (!name) return "";
   return name.split(' ').map(n => n[0]).slice(0, 2).join('');
 }
+
+const handleVerificationChange = async (user: User, isChecked: boolean) => {
+  const result = await updateUserVerification(user.id, isChecked);
+  if (result.success) {
+    toast({
+      title: "Estado de Verificación Actualizado",
+      description: `El usuario ${user.fullName} ha sido ${isChecked ? 'verificado' : 'desverificado'}.`,
+    });
+  } else {
+    toast({
+      variant: "destructive",
+      title: "Error al Actualizar",
+      description: result.error,
+    });
+  }
+};
+
 
 export const userColumns: ColumnDef<User>[] = [
   {
@@ -61,17 +82,25 @@ export const userColumns: ColumnDef<User>[] = [
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Estado
+            Verificado
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         )
-      },
+    },
     cell: ({ row }) => {
-      const isVerified = row.getValue("isVerified");
+      const user = row.original;
       return (
-        <Badge variant={isVerified ? "secondary" : "destructive"}>
-          {isVerified ? "Activo" : "Suspendido"}
-        </Badge>
+        <div className="flex items-center space-x-2">
+            <Switch
+              id={`verified-switch-${user.id}`}
+              checked={user.isVerified}
+              onCheckedChange={(isChecked) => handleVerificationChange(user, isChecked)}
+              aria-label="Verificación de usuario"
+            />
+             <Badge variant={user.isVerified ? "secondary" : "outline"}>
+                {user.isVerified ? "Sí" : "No"}
+             </Badge>
+        </div>
       );
     },
   },
