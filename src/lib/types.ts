@@ -5,12 +5,16 @@ export type User = {
   registrationDate: string;
   profileUrl: string;
   isVerified: boolean;
-  lastStateChange?: string;
   experience: string;
   education: string;
   userType: string;
   location: string;
   cvUrl: string;
+  accountState: 'Activa' | 'Desactivada';
+  // Optional fields that might be null
+  commercialName?: string;
+  industry?: string;
+  description?: string;
 };
 
 export type FirebaseUser = {
@@ -19,12 +23,16 @@ export type FirebaseUser = {
   email: string;
   tiempo_registro: number;
   fotoPerfilUrl: string;
-  usuario_verificado?: boolean; // Corresponds to isVerified
+  usuario_verificado?: boolean;
   experiencia?: string;
   formacion?: string;
   tipoUsuario?: string;
   ubicacion?: string;
   cvUrl?: string;
+  estadoCuenta?: 'Activa' | 'Desactivada';
+  nombreComercial?: string;
+  rubro?: string;
+  descripcion?: string;
 };
 
 

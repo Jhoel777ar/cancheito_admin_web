@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
-import { getAccountControlReasoning } from "@/app/(dashboard)/dashboard/users/actions";
+import { getAccountControlReasoning, updateUserAccountState } from "@/app/(dashboard)/dashboard/users/actions";
 import { UserEditDialog } from "./user-edit-dialog";
 
 
@@ -46,32 +46,45 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
     actionLabel: "",
   });
 
+  const handleActionConfirm = async (actionType: "activate" | "suspend") => {
+    setIsLoading(true);
+    const newState = actionType === 'activate' ? 'Activa' : 'Desactivada';
+    const result = await updateUserAccountState(user.id, newState);
+    setIsLoading(false);
+
+    if (result.success) {
+      toast({
+        title: `Usuario ${newState === 'Activa' ? 'Activado' : 'Suspendido'}`,
+        description: `La cuenta de ${user.fullName} ha sido ${newState === 'Activa' ? 'activada' : 'suspendida'}.`,
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error al Actualizar",
+        description: result.error || "Ocurrió un error inesperado.",
+      });
+    }
+  };
+
+
   const handleActionClick = async (actionType: "activate" | "suspend") => {
     setIsLoading(true);
-    setIsMenuOpen(false); // Close dropdown
+    setIsMenuOpen(false); 
 
     const result = await getAccountControlReasoning(actionType, user);
-
     setIsLoading(false);
 
     if (result.success) {
       setAlertContent({
         title: `Confirmar ${actionType === 'activate' ? 'Activación' : 'Suspensión'}`,
         description: result.reasoning || "¿Estás seguro de que quieres proceder?",
-        action: () => {
-          // Here you would call the actual Firebase update
-          console.log(`${actionType} user:`, user.email);
-          toast({
-            title: `Usuario ${actionType === 'activate' ? 'Activado' : 'Suspendido'}`,
-            description: `La cuenta de ${user.fullName} ha sido ${actionType === 'activate' ? 'activada' : 'suspendida'}.`,
-          });
-        },
+        action: () => handleActionConfirm(actionType),
         actionLabel: `Confirmar ${actionType === 'activate' ? 'Activación' : 'Suspensión'}`,
       });
     } else {
       setAlertContent({
-        title: "Error",
-        description: result.error || "Ocurrió un error desconocido.",
+        title: "Error de IA",
+        description: result.error || "Ocurrió un error desconocido al obtener el razonamiento.",
         action: () => {},
         actionLabel: "OK",
       });
@@ -124,7 +137,7 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
             <Edit className="mr-2 h-4 w-4" /> Editar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {user.isVerified ? (
+          {user.accountState === 'Activa' ? (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => handleActionClick("suspend")}

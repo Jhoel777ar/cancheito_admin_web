@@ -11,7 +11,7 @@ export async function getAccountControlReasoning(actionType: 'activate' | 'suspe
     const input: AccountControlErrorReasoningInput = {
       actionType: actionType,
       userEmail: user.email,
-      currentAccountState: user.isVerified,
+      currentAccountState: user.accountState === 'Activa',
     };
     const result = await accountControlErrorReasoning(input);
     return { success: true, reasoning: result.reasoningSummary };
@@ -39,10 +39,7 @@ export async function updateUser(userId: string, data: Partial<User>) {
         };
 
         await update(userRef, updateData);
-
-        // Revalidate the users page to show fresh data. Not strictly necessary with real-time listeners, but good for robustness.
         revalidatePath('/dashboard/users');
-
         return { success: true };
 
     } catch (error) {
@@ -62,11 +59,30 @@ export async function updateUserVerification(userId: string, isVerified: boolean
         await update(userRef, {
             usuario_verificado: isVerified
         });
-        
+        revalidatePath('/dashboard/users');
         return { success: true };
 
     } catch (error) {
         console.error("Firebase verification update error:", error);
         return { success: false, error: "Failed to update user verification status." };
+    }
+}
+
+export async function updateUserAccountState(userId: string, newState: 'Activa' | 'Desactivada') {
+    if (!userId) {
+        return { success: false, error: "User ID is missing." };
+    }
+
+    try {
+        const userRef = ref(db, `Usuarios/${userId}`);
+        await update(userRef, {
+            estadoCuenta: newState
+        });
+        revalidatePath('/dashboard/users');
+        return { success: true };
+
+    } catch (error) {
+        console.error("Firebase account state update error:", error);
+        return { success: false, error: "Failed to update user account state." };
     }
 }

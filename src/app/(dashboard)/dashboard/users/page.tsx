@@ -17,12 +17,14 @@ function UserSkeleton() {
         <Skeleton className="h-8 w-[250px]" />
       </div>
       <div className="rounded-md border">
-        <div className="flex flex-col space-y-3 p-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
+        <div className="relative w-full overflow-auto">
+            <div className="flex flex-col space-y-3 p-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+            </div>
         </div>
       </div>
       <div className="flex items-center justify-between">
@@ -39,6 +41,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const initialLoadDone = useRef(false);
+  const userCountRef = useRef(0);
 
   useEffect(() => {
     const usersRef = ref(db, 'Usuarios');
@@ -48,12 +51,13 @@ export default function UsersPage() {
         const usersData = snapshot.val();
 
         // Show notification for new users after the initial load
-        if (initialLoadDone.current && Object.keys(usersData).length > users.length) {
+        if (initialLoadDone.current && Object.keys(usersData).length > userCountRef.current) {
             toast({
               title: "Nuevo Usuario Registrado",
               description: "Un nuevo usuario se ha unido a la plataforma.",
             });
         }
+        userCountRef.current = Object.keys(usersData).length;
 
         for (const userKey in usersData) {
           const fbUser: FirebaseUser = usersData[userKey];
@@ -67,12 +71,16 @@ export default function UsersPage() {
               email: fbUser.email || 'Sin email',
               registrationDate: registrationTime.getTime() === 0 ? 'Fecha desconocida' : format(registrationTime, 'yyyy-MM-dd'),
               profileUrl: fbUser.fotoPerfilUrl || '',
-              isVerified: fbUser.usuario_verificado === true, // Default to false if undefined or not exactly true
+              isVerified: fbUser.usuario_verificado === true,
               experience: fbUser.experiencia || 'No especificado',
               education: fbUser.formacion || 'No especificado',
               userType: fbUser.tipoUsuario || 'No especificado',
               location: fbUser.ubicacion || 'No especificado',
               cvUrl: fbUser.cvUrl || '',
+              accountState: fbUser.estadoCuenta || 'Activa',
+              commercialName: fbUser.nombreComercial,
+              industry: fbUser.rubro,
+              description: fbUser.descripcion,
             };
             usersList.push(user);
           }
