@@ -89,6 +89,9 @@ export async function updateUserAccountState(userId: string, newState: 'Activa' 
 }
 
 export async function updateUserPassword(userId: string, newPassword: string) {
+    if (!adminAuth) {
+        return { success: false, error: "La configuración del administrador de Firebase no está disponible. Revisa las variables de entorno del servidor." };
+    }
     if (!userId) {
         return { success: false, error: "User ID is missing." };
     }
