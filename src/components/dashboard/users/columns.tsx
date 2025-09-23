@@ -75,6 +75,18 @@ export const userColumns: ColumnDef<User>[] = [
     },
   },
   {
+    accessorKey: "accountState",
+    header: "Estado de la Cuenta",
+    cell: ({ row }) => {
+        const state = row.getValue("accountState") as string;
+        return (
+            <Badge variant={state === 'Activa' ? "secondary" : "destructive"}>
+                {state}
+            </Badge>
+        );
+    }
+  },
+  {
     accessorKey: "isVerified",
     header: ({ column }) => {
         return (
@@ -107,6 +119,29 @@ export const userColumns: ColumnDef<User>[] = [
   {
     accessorKey: "userType",
     header: "Tipo de Usuario",
+  },
+  {
+    accessorKey: "commercialName",
+    header: "Nombre Comercial",
+    cell: ({ row }) => row.original.commercialName || "N/A"
+  },
+  {
+    accessorKey: "industry",
+    header: "Rubro",
+    cell: ({ row }) => row.original.industry || "N/A"
+  },
+  {
+    accessorKey: "description",
+    header: "Descripción",
+    cell: ({ row }) => {
+        const description = row.original.description;
+        if (!description) return "N/A";
+        return (
+            <div className="max-w-xs truncate" title={description}>
+                {description}
+            </div>
+        )
+    }
   },
   {
     accessorKey: "location",
