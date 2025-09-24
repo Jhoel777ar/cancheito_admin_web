@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -30,9 +31,12 @@ import {
   Briefcase,
   FlameKindling,
   LogOut,
-  Settings,
   LifeBuoy,
 } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function DashboardLayout({
   children,
@@ -41,6 +45,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { toast } = useToast();
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -49,8 +54,21 @@ export default function DashboardLayout({
     { href: "/dashboard/offers", label: "Job Offers", icon: Briefcase },
   ];
 
-  const handleLogout = () => {
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al cerrar sesión",
+        description: "No se pudo cerrar la sesión. Por favor, inténtalo de nuevo.",
+      });
+    }
+  };
+
+  const handleSupportClick = () => {
+    window.open("https://arkdev.pages.dev/nosotros", "_blank");
   };
 
   return (
@@ -98,11 +116,7 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSupportClick}>
                 <LifeBuoy className="mr-2 h-4 w-4" />
                 <span>Support</span>
               </DropdownMenuItem>
