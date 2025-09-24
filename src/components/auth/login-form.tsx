@@ -101,7 +101,7 @@ export function LoginForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="admin@ark.admin.com"
+                  placeholder="email@example.com"
                   {...field}
                   disabled={isLoading}
                 />

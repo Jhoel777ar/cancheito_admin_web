@@ -83,3 +83,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .animated-gradient-background {
+    background-size: 400% 400%;
+    background-image: linear-gradient(
+      -45deg,
+      hsl(var(--background)),
+      hsl(var(--background) / 0.8),
+      hsl(var(--primary) / 0.1),
+      hsl(var(--background) / 0.8),
+      hsl(var(--background))
+    );
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
