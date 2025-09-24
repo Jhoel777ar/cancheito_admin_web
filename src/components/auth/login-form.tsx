@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from 'next/navigation';
@@ -28,6 +29,8 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+const ALLOWED_DOMAIN = "@ark.admin.com";
+
 export function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
@@ -42,6 +45,16 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    // Client-side validation for allowed domain
+    if (!data.email.endsWith(ALLOWED_DOMAIN)) {
+      toast({
+        variant: "destructive",
+        title: "Acceso Denegado",
+        description: "Usuario no autorizado. Contacte al administrador.",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
@@ -88,7 +101,7 @@ export function LoginForm() {
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="admin@example.com"
+                  placeholder="admin@ark.admin.com"
                   {...field}
                   disabled={isLoading}
                 />
