@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { Table } from "@tanstack/react-table"
@@ -20,7 +21,7 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder={placeholder}
-          value={filterValue}
+          value={filterValue ?? ''}
           onChange={(event) => onFilterChange(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />

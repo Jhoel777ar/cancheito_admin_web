@@ -14,7 +14,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  getGlobalFilteredRowModel,
 } from "@tanstack/react-table"
 
 import {
@@ -60,47 +59,41 @@ export function DataTable<TData, TValue>({
       columnFilters,
       globalFilter,
     },
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const primaryValue = row.getValue(filterColumn) as string | undefined;
+      
+      if (primaryValue?.toLowerCase().includes(filterValue.toLowerCase())) {
+        return true;
+      }
+      
+      if (secondaryFilterColumn) {
+        const secondaryValue = row.getValue(secondaryFilterColumn) as string | undefined;
+        if (secondaryValue?.toLowerCase().includes(filterValue.toLowerCase())) {
+          return true;
+        }
+      }
+      
+      return false;
+    },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    getGlobalFilteredRowModel: getGlobalFilteredRowModel(), 
   })
-
-  // This allows filtering by either the primary or secondary column from the same input
-  const handleFilterChange = (value: string) => {
-    setGlobalFilter(value)
-  }
-
-  // Define a global filter function that checks both columns
-  React.useEffect(() => {
-    if (secondaryFilterColumn) {
-      table.setGlobalFilterFn((row, columnId, filterValue) => {
-        const primaryValue = row.getValue(filterColumn) as string
-        const secondaryValue = row.getValue(secondaryFilterColumn) as string
-        
-        return (
-          primaryValue?.toLowerCase().includes(filterValue.toLowerCase()) ||
-          secondaryValue?.toLowerCase().includes(filterValue.toLowerCase())
-        );
-      });
-    }
-  }, [table, filterColumn, secondaryFilterColumn]);
-
 
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <div className="space-y-4 p-4">
         <DataTableToolbar 
           table={table}
-          onFilterChange={handleFilterChange}
+          onFilterChange={setGlobalFilter}
           placeholder={filterPlaceholder}
           filterValue={globalFilter}
         />
