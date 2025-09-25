@@ -25,7 +25,9 @@ async function getJobOffers(): Promise<JobOffer[]> {
   const usersMap = new Map<string, FirebaseUser>();
   for (const userId in usersData) {
     if(usersData[userId]){
-      usersMap.set(userId, usersData[userId]);
+      // Usamos el nombre comercial si existe, si no el nombre completo
+      const userName = usersData[userId].nombreComercial || usersData[userId].nombre_completo || 'Usuario Desconocido';
+      usersMap.set(userId, {...usersData[userId], nombre_completo: userName});
     }
   }
 
