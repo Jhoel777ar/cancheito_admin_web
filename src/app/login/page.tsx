@@ -13,7 +13,7 @@ export default function LoginPage() {
               <FlameKindling className="h-8 w-8 text-primary" />
             </div>
             <CardTitle className="text-3xl font-bold">AdminEdge</CardTitle>
-            <CardDescription>Welcome back. Please log in to continue.</CardDescription>
+            <CardDescription>Bienvenido de nuevo. Por favor, inicia sesión para continuar.</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />

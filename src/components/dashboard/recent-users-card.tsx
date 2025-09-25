@@ -25,7 +25,7 @@ function getInitials(name: string) {
 }
 
 async function getRecentUsers(): Promise<User[]> {
-  const usersRef = query(ref(db, 'usuarios'), orderByChild('tiempo_registro'), limitToLast(5));
+  const usersRef = query(ref(db, 'Usuarios'), orderByChild('tiempo_registro'), limitToLast(5));
   const snapshot = await get(usersRef);
 
   if (snapshot.exists()) {
@@ -55,9 +55,9 @@ export async function RecentUsersCard() {
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Recent Registrations</CardTitle>
+        <CardTitle>Registros Recientes</CardTitle>
         <CardDescription>
-          The 5 most recent users who signed up.
+          Los 5 usuarios más recientes que se registraron.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -78,7 +78,7 @@ export async function RecentUsersCard() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No recent users to display.</p>
+          <p className="text-sm text-muted-foreground">No hay usuarios recientes para mostrar.</p>
         )}
       </CardContent>
     </Card>

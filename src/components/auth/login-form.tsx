@@ -67,12 +67,12 @@ export function LoginForm() {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
         case 'auth/invalid-credential':
-          title = "Invalid Credentials";
-          description = "The email or password you entered is incorrect.";
+          title = "Credenciales Inválidas";
+          description = "El email o la contraseña que ingresaste es incorrecta.";
           break;
         case 'auth/user-disabled':
-          title = "Account Suspended";
-          description = "Your account has been disabled. Please contact support.";
+          title = "Cuenta Suspendida";
+          description = "Tu cuenta ha sido deshabilitada. Por favor contacta a soporte.";
           break;
         default:
           console.error("Firebase Auth Error:", error);
@@ -115,11 +115,11 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Contraseña</FormLabel>
               <FormControl>
                 <Input
                   type="password"
-                  placeholder="password"
+                  placeholder="••••••••"
                   {...field}
                   disabled={isLoading}
                 />
@@ -130,7 +130,7 @@ export function LoginForm() {
         />
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Log In
+          Iniciar Sesión
         </Button>
       </form>
     </Form>

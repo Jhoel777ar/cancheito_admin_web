@@ -15,8 +15,8 @@ export function OverviewChart() {
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle>Overview</CardTitle>
-        <CardDescription>User signups over the last 7 days.</CardDescription>
+        <CardTitle>Resumen General</CardTitle>
+        <CardDescription>Registros de usuarios en los últimos 7 días.</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>
