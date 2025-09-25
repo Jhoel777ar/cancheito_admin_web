@@ -71,8 +71,7 @@ export default function OffersPage() {
       const usersMap = new Map<string, FirebaseUser>();
       for (const userId in usersData) {
         if(usersData[userId]){
-          const userName = usersData[userId].nombreComercial || usersData[userId].nombre_completo || 'Usuario Desconocido';
-          usersMap.set(userId, {...usersData[userId], nombre_completo: userName});
+          usersMap.set(userId, {uid: userId, ...usersData[userId]});
         }
       }
 
@@ -83,7 +82,12 @@ export default function OffersPage() {
         return {
           id: fbOffer.id,
           title: fbOffer.cargo,
-          employerName: employer?.nombre_completo || 'Usuario Desconocido',
+          employer: {
+            id: employer?.uid || fbOffer.employerId,
+            name: employer?.nombre_completo || 'Usuario Desconocido',
+            email: employer?.email || 'Email no disponible',
+            avatarUrl: employer?.fotoPerfilUrl || ''
+          },
           location: fbOffer.ubicacion,
           modality: fbOffer.modalidad,
           approxPayment: fbOffer.pago_aprox,
@@ -126,7 +130,7 @@ export default function OffersPage() {
         columns={offerColumns} 
         data={jobOffers} 
         filterColumn="title"
-        secondaryFilterColumn="employerName"
+        secondaryFilterColumn="employer.name"
         filterPlaceholder="Filtrar por cargo o publicador..."
       />
     </div>

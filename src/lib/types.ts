@@ -46,10 +46,17 @@ export type Company = {
   website: string;
 };
 
+export type EmployerProfile = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
 export type JobOffer = {
   id: string;
   title: string;
-  employerName: string;
+  employer: EmployerProfile;
   location:string;
   modality: string;
   approxPayment: string;

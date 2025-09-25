@@ -28,6 +28,13 @@ import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
 import { Card } from "@/components/ui/card"
 
+// Helper function to safely access nested properties
+function getNestedValue(obj: any, path: string): any {
+  if (!path) return undefined;
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
+
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -61,15 +68,15 @@ export function DataTable<TData, TValue>({
     },
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const primaryValue = row.getValue(filterColumn) as string | undefined;
+      const primaryValue = getNestedValue(row.original, filterColumn);
       
-      if (primaryValue?.toLowerCase().includes(filterValue.toLowerCase())) {
+      if (typeof primaryValue === 'string' && primaryValue.toLowerCase().includes(filterValue.toLowerCase())) {
         return true;
       }
       
       if (secondaryFilterColumn) {
-        const secondaryValue = row.getValue(secondaryFilterColumn) as string | undefined;
-        if (secondaryValue?.toLowerCase().includes(filterValue.toLowerCase())) {
+        const secondaryValue = getNestedValue(row.original, secondaryFilterColumn);
+        if (typeof secondaryValue === 'string' && secondaryValue.toLowerCase().includes(filterValue.toLowerCase())) {
           return true;
         }
       }
