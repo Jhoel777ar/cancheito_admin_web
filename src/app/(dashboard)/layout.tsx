@@ -32,6 +32,7 @@ import {
   FlameKindling,
   LogOut,
   LifeBuoy,
+  UserCheck,
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -50,6 +51,7 @@ export default function DashboardLayout({
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/users", label: "Users", icon: Users },
+    { href: "/dashboard/verify-users", label: "Verify Users", icon: UserCheck },
     { href: "/dashboard/companies", label: "Companies", icon: Building2 },
     { href: "/dashboard/offers", label: "Job Offers", icon: Briefcase },
   ];
