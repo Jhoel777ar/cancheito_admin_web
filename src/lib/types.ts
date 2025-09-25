@@ -54,3 +54,15 @@ export type JobOffer = {
   postedDate: string;
   status: 'Open' | 'Closed';
 };
+
+export type FirebaseJobOffer = {
+  cargo: string;
+  createdAt: number;
+  descripcion: string;
+  employerId: string;
+  estado: 'ACTIVA' | 'CERRADA';
+  id: string;
+  modalidad: string;
+  pago_aprox: string;
+  ubicacion: string;
+}

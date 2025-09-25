@@ -14,6 +14,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  getGlobalFilteredRowModel,
 } from "@tanstack/react-table"
 
 import {
@@ -50,7 +51,7 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState('')
 
-  const table = useReactTable({
+   const table = useReactTable({
     data,
     columns,
     state: {
@@ -70,12 +71,28 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    getGlobalFilteredRowModel: getGlobalFilteredRowModel(), 
   })
 
-  // This allows filtering by either fullName or email from the same input
-   const handleFilterChange = (value: string) => {
-    table.setGlobalFilter(value);
-  };
+  // This allows filtering by either the primary or secondary column from the same input
+  const handleFilterChange = (value: string) => {
+    setGlobalFilter(value)
+  }
+
+  // Define a global filter function that checks both columns
+  React.useEffect(() => {
+    if (secondaryFilterColumn) {
+      table.setGlobalFilterFn((row, columnId, filterValue) => {
+        const primaryValue = row.getValue(filterColumn) as string
+        const secondaryValue = row.getValue(secondaryFilterColumn) as string
+        
+        return (
+          primaryValue?.toLowerCase().includes(filterValue.toLowerCase()) ||
+          secondaryValue?.toLowerCase().includes(filterValue.toLowerCase())
+        );
+      });
+    }
+  }, [table, filterColumn, secondaryFilterColumn]);
 
 
   return (
