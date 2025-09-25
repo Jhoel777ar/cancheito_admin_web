@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "@/components/dashboard/data-table/data-table";
 import { userColumns } from "@/components/dashboard/users/columns";
 import { db } from "@/lib/firebase";
@@ -40,8 +40,6 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const initialLoadDone = useRef(false);
-  const userCountRef = useRef(0);
 
   useEffect(() => {
     const usersRef = ref(db, 'Usuarios');
@@ -49,16 +47,6 @@ export default function UsersPage() {
       const usersList: User[] = [];
       if (snapshot.exists()) {
         const usersData = snapshot.val();
-
-        // Show notification for new users after the initial load
-        if (initialLoadDone.current && Object.keys(usersData).length > userCountRef.current) {
-            toast({
-              title: "Nuevo Usuario Registrado",
-              description: "Un nuevo usuario se ha unido a la plataforma.",
-            });
-        }
-        userCountRef.current = Object.keys(usersData).length;
-
         for (const userKey in usersData) {
           const fbUser: FirebaseUser = usersData[userKey];
           
@@ -89,10 +77,6 @@ export default function UsersPage() {
       setUsers(usersList.reverse()); // Show newest users first
       setLoading(false);
       
-      // Mark initial load as done after a short delay to prevent notifications on first render
-      setTimeout(() => {
-        initialLoadDone.current = true;
-      }, 1000);
     }, (error) => {
       console.error("Firebase read error:", error);
       setLoading(false);
@@ -105,7 +89,6 @@ export default function UsersPage() {
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
 
   if (loading) {

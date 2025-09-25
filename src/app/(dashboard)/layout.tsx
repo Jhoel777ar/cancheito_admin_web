@@ -34,9 +34,11 @@ import {
   LifeBuoy,
   UserCheck,
 } from "lucide-react";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
+import { ref, onValue } from "firebase/database";
 
 
 export default function DashboardLayout({
@@ -47,6 +49,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const initialLoadDone = useRef(false);
+  const userCountRef = useRef(0);
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -55,6 +59,38 @@ export default function DashboardLayout({
     { href: "/dashboard/companies", label: "Empresas", icon: Building2 },
     { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
   ];
+
+  useEffect(() => {
+    const usersRef = ref(db, 'Usuarios');
+    const unsubscribe = onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const usersData = snapshot.val();
+        const currentUserCount = Object.keys(usersData).length;
+
+        if (initialLoadDone.current && currentUserCount > userCountRef.current) {
+            toast({
+              title: "Nuevo Usuario Registrado",
+              description: "Un nuevo usuario se ha unido a la plataforma.",
+            });
+        }
+        userCountRef.current = currentUserCount;
+
+        if (!initialLoadDone.current) {
+          initialLoadDone.current = true;
+        }
+      }
+    }, (error) => {
+      console.error("Firebase real-time error:", error);
+       toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudieron obtener actualizaciones en tiempo real."
+      })
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleLogout = async () => {
     try {
