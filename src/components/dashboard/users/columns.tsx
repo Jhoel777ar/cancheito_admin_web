@@ -6,9 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "@/lib/types";
-import { UserActionsCell } from "./user-actions-cell";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, FileText } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
+import Link from "next/link";
 
 
 function getInitials(name: string) {
@@ -43,22 +43,22 @@ export const userColumns: ColumnDef<User>[] = [
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3">
+        <Link href={`/dashboard/users/${user.id}`} className="group flex items-center gap-3 hover:bg-muted/50 p-1 rounded-md transition-colors -ml-1">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
             <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-medium">{user.fullName}</span>
+            <span className="font-medium group-hover:text-primary">{user.fullName}</span>
             <span className="text-sm text-muted-foreground">{user.email}</span>
           </div>
-        </div>
+        </Link>
       );
     },
   },
   {
     accessorKey: "accountState",
-    header: "Estado de la Cuenta",
+    header: "Estado",
     cell: ({ row }) => {
         const state = row.getValue("accountState") as string;
         return (
@@ -92,55 +92,7 @@ export const userColumns: ColumnDef<User>[] = [
   },
   {
     accessorKey: "userType",
-    header: "Tipo de Usuario",
-  },
-  {
-    accessorKey: "commercialName",
-    header: "Nombre Comercial",
-    cell: ({ row }) => row.original.commercialName || "N/A"
-  },
-  {
-    accessorKey: "industry",
-    header: "Rubro",
-    cell: ({ row }) => row.original.industry || "N/A"
-  },
-  {
-    accessorKey: "description",
-    header: "Descripción",
-    cell: ({ row }) => {
-        const description = row.original.description;
-        if (!description) return "N/A";
-        return (
-            <div className="max-w-xs truncate" title={description}>
-                {description}
-            </div>
-        )
-    }
-  },
-  {
-    accessorKey: "location",
-    header: "Ubicación",
-  },
-  {
-    accessorKey: "education",
-    header: "Formación",
-  },
-  {
-    accessorKey: "experience",
-    header: "Experiencia",
-  },
-  {
-    accessorKey: "cvUrl",
-    header: "CV",
-    cell: ({ row }) => {
-      const cvUrl = row.getValue("cvUrl") as string;
-      if (!cvUrl) return <span>-</span>;
-      return (
-        <a href={cvUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-          <FileText className="inline-block" />
-        </a>
-      )
-    },
+    header: "Tipo",
   },
   {
     accessorKey: "registrationDate",
@@ -156,8 +108,6 @@ export const userColumns: ColumnDef<User>[] = [
         )
       },
   },
-  {
-    id: "actions",
-    cell: ({ row }) => <UserActionsCell row={row} />,
-  },
 ];
+
+    
