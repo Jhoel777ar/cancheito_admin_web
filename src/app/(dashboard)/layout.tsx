@@ -104,7 +104,7 @@ export default function DashboardLayout({
 
   // Effect for offers notifications
   useEffect(() => {
-    if (usersMap.size === 0) return; // Wait for users to be loaded
+    if (usersMap.size === 0 && initialLoadDone.current.users === false) return; // Wait for users to be loaded at least once
 
     const offersRef = ref(db, 'ofertas');
     const unsubscribe = onValue(offersRef, (snapshot) => {
