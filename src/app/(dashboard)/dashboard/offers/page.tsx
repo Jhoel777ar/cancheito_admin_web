@@ -23,26 +23,24 @@ async function getJobOffers(): Promise<JobOffer[]> {
 
   const usersMap = new Map<string, FirebaseUser>();
   for (const userId in usersData) {
-    usersMap.set(userId, usersData[userId]);
+    if(usersData[userId]){
+      usersMap.set(userId, usersData[userId]);
+    }
   }
 
   const jobOffers: JobOffer[] = Object.keys(offersData).map(key => {
     const fbOffer: FirebaseJobOffer = offersData[key];
     const employer = usersMap.get(fbOffer.employerId);
     
-    let offerType: 'Full-time' | 'Part-time' | 'Contract' = 'Full-time';
-    if (fbOffer.modalidad === 'Híbrido' || fbOffer.modalidad === 'Remoto' || fbOffer.modalidad === 'Presencial') {
-        // Assuming modalidad maps to contract, could be refined
-    }
-
     return {
       id: fbOffer.id,
       title: fbOffer.cargo,
-      companyName: employer?.nombreComercial || employer?.nombre_completo || 'Empresa Desconocida',
+      employerName: employer?.nombre_completo || 'Usuario Desconocido',
       location: fbOffer.ubicacion,
-      type: offerType,
+      modality: fbOffer.modalidad,
+      approxPayment: fbOffer.pago_aprox,
       postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
-      status: fbOffer.estado === 'ACTIVA' ? 'Open' : 'Closed',
+      status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
     };
   });
 
@@ -60,8 +58,8 @@ export default async function OffersPage() {
         columns={offerColumns} 
         data={jobOffers} 
         filterColumn="title"
-        secondaryFilterColumn="companyName"
-        filterPlaceholder="Filtrar por cargo o empresa..."
+        secondaryFilterColumn="employerName"
+        filterPlaceholder="Filtrar por cargo o publicador..."
       />
     </div>
   );

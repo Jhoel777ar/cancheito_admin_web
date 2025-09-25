@@ -9,22 +9,30 @@ import { ArrowUpDown } from "lucide-react";
 export const offerColumns: ColumnDef<JobOffer>[] = [
   {
     accessorKey: "title",
-    header: "Job Title",
+    header: "Cargo",
   },
   {
-    accessorKey: "companyName",
-    header: "Company",
+    accessorKey: "employerName",
+    header: "Publicado por",
   },
   {
     accessorKey: "location",
-    header: "Location",
+    header: "Ubicación",
   },
   {
-    accessorKey: "type",
-    header: "Type",
+    accessorKey: "modality",
+    header: "Modalidad",
     cell: ({ row }) => {
-      const type: string = row.getValue("type");
-      return <Badge variant="outline">{type}</Badge>
+      const modality: string = row.getValue("modality");
+      return <Badge variant="outline">{modality}</Badge>
+    }
+  },
+  {
+    accessorKey: "approxPayment",
+    header: "Pago Aprox.",
+    cell: ({ row }) => {
+      const payment = row.getValue("approxPayment") as string;
+      return <span>${payment}</span>
     }
   },
   {
@@ -35,7 +43,7 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Posted Date
+          Fecha de Publicación
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -43,11 +51,11 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Estado",
     cell: ({ row }) => {
       const status: string = row.getValue("status");
       return (
-        <Badge variant={status === 'Open' ? "secondary" : "default"}>
+        <Badge variant={status === 'Activa' ? "secondary" : "destructive"}>
           {status}
         </Badge>
       );

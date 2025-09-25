@@ -48,11 +48,12 @@ export type Company = {
 export type JobOffer = {
   id: string;
   title: string;
-  companyName: string;
+  employerName: string;
   location:string;
-  type: 'Full-time' | 'Part-time' | 'Contract';
+  modality: string;
+  approxPayment: string;
   postedDate: string;
-  status: 'Open' | 'Closed';
+  status: 'Activa' | 'Cerrada';
 };
 
 export type FirebaseJobOffer = {
