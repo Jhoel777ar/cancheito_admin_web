@@ -1,3 +1,4 @@
+
 import { DataTable } from "@/components/dashboard/data-table/data-table";
 import { offerColumns } from "@/components/dashboard/offers/columns";
 import { db } from "@/lib/firebase";

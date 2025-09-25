@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -32,7 +33,11 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
     header: "Pago Aprox.",
     cell: ({ row }) => {
       const payment = row.getValue("approxPayment") as string;
-      return <span>${payment}</span>
+      const parsedPayment = parseFloat(payment);
+      if (isNaN(parsedPayment)) {
+        return <span>{payment}</span>
+      }
+      return <span>${parsedPayment.toLocaleString('en-US')}</span>
     }
   },
   {
