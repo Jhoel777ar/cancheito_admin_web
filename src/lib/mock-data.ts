@@ -32,12 +32,5 @@ export const dashboardStats = {
   newUsersThisMonth: 0,
 };
 
-export const userSignupsData = [
-  { date: format(subDays(now, 6), 'MMM d'), signups: 2 },
-  { date: format(subDays(now, 5), 'MMM d'), signups: 1 },
-  { date: format(subDays(now, 4), 'MMM d'), signups: 3 },
-  { date: format(subDays(now, 3), 'MMM d'), signups: 2 },
-  { date: format(subDays(now, 2), 'MMM d'), signups: 4 },
-  { date: format(subDays(now, 1), 'MMM d'), signups: 3 },
-  { date: format(now, 'MMM d'), signups: 5 },
-];
+// This data is now fetched from Firebase in app/(dashboard)/dashboard/page.tsx
+export const userSignupsData = [];

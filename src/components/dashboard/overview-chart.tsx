@@ -9,9 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { userSignupsData } from "@/lib/mock-data"
 
-export function OverviewChart() {
+type OverviewChartProps = {
+    data: { date: string; signups: number }[];
+}
+
+export function OverviewChart({ data }: OverviewChartProps) {
   return (
     <Card className="bg-card/80 backdrop-blur-sm">
       <CardHeader>
@@ -20,7 +23,7 @@ export function OverviewChart() {
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={userSignupsData}>
+          <LineChart data={data}>
             <XAxis
               dataKey="date"
               stroke="#888888"
@@ -34,12 +37,15 @@ export function OverviewChart() {
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${value}`}
+              allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: "hsl(var(--background))",
                 borderColor: "hsl(var(--border))",
               }}
+              labelFormatter={(label) => `Fecha: ${label}`}
+              formatter={(value: number) => [value, 'Registros']}
             />
             <Line
               type="monotone"

@@ -16,19 +16,49 @@ async function getDashboardAnalytics() {
 
   // User Analytics
   let totalUsers = 0, verifiedUsers = 0, suspendedUsers = 0, newUsersLast30Days = 0;
+  const userSignupsData: { date: string, signups: number }[] = [];
+
+  const last7DaysInterval = eachDayOfInterval({
+    start: subDays(new Date(), 6),
+    end: new Date()
+  });
+
   if (userSnapshot.exists()) {
     const usersData = userSnapshot.val();
     const userIds = Object.keys(usersData);
     totalUsers = userIds.length;
     const thirtyDaysAgo = subDays(new Date(), 30).getTime();
+    
+    const userCountsByDay: { [key: string]: number } = {};
 
     userIds.forEach(id => {
       const user: FirebaseUser = usersData[id];
       if (user) {
         if (user.usuario_verificado === true) verifiedUsers++;
         if (user.estadoCuenta === 'Desactivada') suspendedUsers++;
-        if (user.tiempo_registro && user.tiempo_registro > thirtyDaysAgo) newUsersLast30Days++;
+        if (user.tiempo_registro) {
+            if (user.tiempo_registro > thirtyDaysAgo) newUsersLast30Days++;
+            
+            const userDate = format(new Date(user.tiempo_registro), 'MMM d');
+            userCountsByDay[userDate] = (userCountsByDay[userDate] || 0) + 1;
+        }
       }
+    });
+
+    last7DaysInterval.forEach(day => {
+        const formattedDate = format(day, 'MMM d');
+        userSignupsData.push({
+            date: formattedDate,
+            signups: userCountsByDay[formattedDate] || 0
+        });
+    });
+
+  } else {
+     last7DaysInterval.forEach(day => {
+        userSignupsData.push({
+            date: format(day, 'MMM d'),
+            signups: 0
+        });
     });
   }
 
@@ -51,17 +81,14 @@ async function getDashboardAnalytics() {
         if (offer.estado === 'CERRADA') closedOffers++;
         if (offer.createdAt && offer.createdAt > thirtyDaysAgo) newOffersLast30Days++;
 
-        const offerDate = format(new Date(offer.createdAt), 'MMM d');
-        offerCountsByDay[offerDate] = (offerCountsByDay[offerDate] || 0) + 1;
+        if (offer.createdAt) {
+          const offerDate = format(new Date(offer.createdAt), 'MMM d');
+          offerCountsByDay[offerDate] = (offerCountsByDay[offerDate] || 0) + 1;
+        }
       }
     });
 
-    const last7Days = eachDayOfInterval({
-      start: subDays(new Date(), 6),
-      end: new Date()
-    });
-
-    last7Days.forEach(day => {
+    last7DaysInterval.forEach(day => {
         const formattedDate = format(day, 'MMM d');
         offerSignupsData.push({
             date: formattedDate,
@@ -70,11 +97,7 @@ async function getDashboardAnalytics() {
     });
 
   } else {
-     const last7Days = eachDayOfInterval({
-      start: subDays(new Date(), 6),
-      end: new Date()
-    });
-    last7Days.forEach(day => {
+     last7DaysInterval.forEach(day => {
         offerSignupsData.push({
             date: format(day, 'MMM d'),
             signups: 0
@@ -83,7 +106,7 @@ async function getDashboardAnalytics() {
   }
 
   return { 
-    userAnalytics: { totalUsers, verifiedUsers, suspendedUsers, newUsersLast30Days },
+    userAnalytics: { totalUsers, verifiedUsers, suspendedUsers, newUsersLast30Days, userSignupsData },
     offerAnalytics: { totalOffers, activeOffers, closedOffers, newOffersLast30Days, offerSignupsData }
   };
 }
@@ -99,8 +122,8 @@ export default async function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total de Usuarios" value={userAnalytics.totalUsers} icon={Users} />
           <StatsCard title="Usuarios Verificados" value={userAnalytics.verifiedUsers} icon={UserCheck} />
-          <StatsCard title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
-          <StatsCard title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
+          <Stats.card title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
+          <Stats.card title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
         </div>
       </div>
        <div>
@@ -113,7 +136,7 @@ export default async function DashboardPage() {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <OverviewChart />
+        <OverviewChart data={userAnalytics.userSignupsData} />
         <OffersChart data={offerAnalytics.offerSignupsData} />
       </div>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
