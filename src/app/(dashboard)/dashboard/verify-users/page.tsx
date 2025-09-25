@@ -23,7 +23,7 @@ function getInitials(name: string) {
 
 function VerificationSkeleton() {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, i) => (
                 <Card key={i} className="bg-card/80 backdrop-blur-sm">
                     <CardHeader className="flex flex-row items-center gap-4">
@@ -117,26 +117,26 @@ export default function VerifyUsersPage() {
 
   if (loading) {
     return (
-        <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-6">Verificar Usuarios</h1>
-            <p className="text-muted-foreground mb-6">Usuarios pendientes de verificación. Activa el interruptor para verificar su cuenta.</p>
+        <div className="space-y-6">
+            <h1 className="text-3xl font-bold tracking-tight">Verificar Usuarios</h1>
+            <p className="text-muted-foreground">Usuarios pendientes de verificación. Activa el interruptor para verificar su cuenta.</p>
             <VerificationSkeleton />
         </div>
     )
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Verificar Usuarios</h1>
-      <p className="text-muted-foreground mb-6">Usuarios pendientes de verificación. Activa el interruptor para verificar su cuenta.</p>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight">Verificar Usuarios</h1>
+      <p className="text-muted-foreground">Usuarios pendientes de verificación. Activa el interruptor para verificar su cuenta.</p>
       
       {unverifiedUsers.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {unverifiedUsers.map((user) => {
             const isProfileIncomplete = !user.profileUrl || !user.cvUrl;
             return (
               <Card key={user.id} className={cn(
-                  "bg-card/80 backdrop-blur-sm flex flex-col relative",
+                  "flex flex-col relative bg-card/80 backdrop-blur-sm",
                   isProfileIncomplete && "border-destructive"
               )}>
                 {isProfileIncomplete && (
@@ -149,17 +149,17 @@ export default function VerifyUsersPage() {
                     <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
                     <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-xl break-words" title={user.fullName}>{user.fullName}</CardTitle>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1 break-all" title={user.email}>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="break-words text-xl" title={user.fullName}>{user.fullName}</CardTitle>
+                    <p className="flex items-center gap-2 pt-1 text-sm text-muted-foreground break-all" title={user.email}>
                       <Mail size={14} className="flex-shrink-0" /> 
                       <span>{user.email}</span>
                     </p>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3 flex-grow">
-                  <p className="text-sm text-muted-foreground flex items-center gap-2"><GraduationCap size={16} />{user.education}</p>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase size={16} />{user.experience}</p>
+                <CardContent className="flex-grow space-y-3">
+                  <p className="flex items-center gap-2 text-sm text-muted-foreground"><GraduationCap size={16} />{user.education}</p>
+                  <p className="flex items-center gap-2 text-sm text-muted-foreground"><Briefcase size={16} />{user.experience}</p>
                   {user.cvUrl && (
                     <Button asChild variant="outline" size="sm">
                       <a href={user.cvUrl} target="_blank" rel="noopener noreferrer">
@@ -168,7 +168,7 @@ export default function VerifyUsersPage() {
                     </Button>
                   )}
                 </CardContent>
-                <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-6">
+                <CardFooter className="flex items-center justify-between bg-muted/50 px-6 py-3">
                   <Label htmlFor={`verify-switch-${user.id}`} className="text-sm font-medium">
                     Verificar Usuario
                   </Label>
@@ -183,8 +183,8 @@ export default function VerifyUsersPage() {
           })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center text-center py-20 rounded-lg border border-dashed">
-            <UserCheck size={48} className="text-muted-foreground mb-4" />
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-center">
+            <UserCheck size={48} className="mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold">Todo al día</h3>
             <p className="text-muted-foreground">No hay usuarios pendientes de verificación.</p>
         </div>

@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/card"
 import { FirebaseUser, User } from "@/lib/types"
 import { db } from "@/lib/firebase";
-import { ref, get, query } from "firebase/database";
+import { ref, get, query, limitToLast } from "firebase/database";
 import { format } from "date-fns";
+import Link from "next/link";
 
 function getInitials(name: string) {
   if (!name) return "S/N";
@@ -49,7 +50,6 @@ async function getRecentUsers(): Promise<User[]> {
       };
     });
     
-    // Sort users by registration time in descending order and take the top 5
     return usersList
       .sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime())
       .slice(0, 5);
@@ -71,19 +71,19 @@ export async function RecentUsersCard() {
       </CardHeader>
       <CardContent>
         {recentUsers.length > 0 ? (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {recentUsers.map((user: User) => (
-              <div key={user.id} className="flex items-center">
+              <Link key={user.id} href={`/dashboard/users/${user.id}`} className="group flex items-center gap-3 rounded-md p-2 -mx-2 hover:bg-muted/50 transition-colors">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt="Avatar" />
                   <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
                 </Avatar>
-                <div className="ml-4 space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.fullName}</p>
+                <div className="ml-2 flex-1 space-y-1">
+                  <p className="text-sm font-medium leading-none group-hover:text-primary">{user.fullName}</p>
                   <p className="text-sm text-muted-foreground">{user.email}</p>
                 </div>
-                <div className="ml-auto font-medium text-sm">{user.registrationDate}</div>
-              </div>
+                <div className="ml-auto text-right text-sm text-muted-foreground">{user.registrationDate}</div>
+              </Link>
             ))}
           </div>
         ) : (

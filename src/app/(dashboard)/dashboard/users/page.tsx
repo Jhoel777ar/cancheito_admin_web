@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function UserSkeleton() {
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-[250px]" />
       </div>
@@ -93,16 +93,16 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-6">Gestión de Usuarios</h1>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
         <UserSkeleton />
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Gestión de Usuarios</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
       <DataTable
         columns={userColumns}
         data={users}

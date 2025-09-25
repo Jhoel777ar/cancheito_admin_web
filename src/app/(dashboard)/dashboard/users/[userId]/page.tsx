@@ -79,7 +79,6 @@ export default function UserDetailPage() {
     const [loading, setLoading] = useState(true);
     const [isEditOpen, setIsEditOpen] = useState(false);
     
-    // State for alert dialog
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
     const [alertContent, setAlertContent] = useState({
@@ -240,10 +239,10 @@ export default function UserDetailPage() {
 
     if (!user) {
         return (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex h-full items-center justify-center">
                 <Card className="p-8 text-center">
                     <CardTitle>Usuario no encontrado</CardTitle>
-                    <p className="text-muted-foreground mt-2">No se pudo encontrar el usuario con el ID proporcionado.</p>
+                    <p className="mt-2 text-muted-foreground">No se pudo encontrar el usuario con el ID proporcionado.</p>
                 </Card>
             </div>
         )
@@ -275,9 +274,9 @@ export default function UserDetailPage() {
 
             <UserEditDialog user={user} isOpen={isEditOpen} setIsOpen={setIsEditOpen} />
             
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <h1 className="text-3xl font-bold tracking-tight">Perfil de Publicador</h1>
-                 <div className="flex items-center gap-2">
+                 <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" onClick={() => setIsEditOpen(true)}>
                         <Edit size={16} className="mr-2"/>
                         Editar Perfil
@@ -297,17 +296,17 @@ export default function UserDetailPage() {
             </div>
 
             <Card className="overflow-hidden bg-card/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                     <Avatar className="h-24 w-24">
                         <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
                         <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                        <CardTitle className="text-2xl flex items-center gap-2">
+                        <CardTitle className="flex flex-wrap items-center gap-2 text-2xl">
                             {user.fullName}
                             <Badge variant={user.accountState === 'Activa' ? 'secondary' : 'destructive'}>{user.accountState}</Badge>
                         </CardTitle>
-                        <p className="text-muted-foreground flex items-center gap-2 mt-1">
+                        <p className="mt-1 flex items-center gap-2 text-muted-foreground">
                             <Mail size={14} /> {user.email}
                         </p>
                     </div>
@@ -323,24 +322,24 @@ export default function UserDetailPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                    <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
                             <Briefcase size={16} className="text-primary" />
                             <strong>Tipo:</strong> {user.userType}
                         </div>
-                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
                             <GraduationCap size={16} className="text-primary" />
                             <strong>Formación:</strong> {user.education}
                         </div>
-                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
                             <MapPin size={16} className="text-primary" />
                             <strong>Ubicación:</strong> {user.location}
                         </div>
-                        <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                        <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
                            <Calendar size={16} className="text-primary" />
                             <strong>Registrado:</strong> {user.registrationDate}
                         </div>
-                         <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-md">
+                         <div className="flex items-center gap-2 rounded-md bg-muted/50 p-2">
                             {user.cvUrl ? (
                                 <a href={user.cvUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-primary hover:underline">
                                     <CheckCircle size={16} /> <strong>CV Adjunto</strong>
@@ -367,5 +366,3 @@ export default function UserDetailPage() {
         </div>
     );
 }
-
-    

@@ -94,23 +94,29 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Total de Usuarios" value={userAnalytics.totalUsers} icon={Users} />
-        <StatsCard title="Usuarios Verificados" value={userAnalytics.verifiedUsers} icon={UserCheck} />
-        <StatsCard title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
-        <StatsCard title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
+       <div>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Usuarios</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatsCard title="Total de Usuarios" value={userAnalytics.totalUsers} icon={Users} />
+          <StatsCard title="Usuarios Verificados" value={userAnalytics.verifiedUsers} icon={UserCheck} />
+          <StatsCard title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
+          <StatsCard title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
+        </div>
       </div>
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Ofertas Totales" value={offerAnalytics.totalOffers} icon={Briefcase} />
-        <StatsCard title="Ofertas Activas" value={offerAnalytics.activeOffers} icon={FileCheck} />
-        <StatsCard title="Ofertas Cerradas" value={offerAnalytics.closedOffers} icon={FileX} />
-        <StatsCard title="Nuevas Ofertas (30d)" value={offerAnalytics.newOffersLast30Days} icon={FilePlus} />
+       <div>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Ofertas</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatsCard title="Ofertas Totales" value={offerAnalytics.totalOffers} icon={Briefcase} />
+          <StatsCard title="Ofertas Activas" value={offerAnalytics.activeOffers} icon={FileCheck} />
+          <StatsCard title="Ofertas Cerradas" value={offerAnalytics.closedOffers} icon={FileX} />
+          <StatsCard title="Nuevas Ofertas (30d)" value={offerAnalytics.newOffersLast30Days} icon={FilePlus} />
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <OverviewChart />
         <OffersChart data={offerAnalytics.offerSignupsData} />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <RecentUsersCard />
       </div>
     </div>

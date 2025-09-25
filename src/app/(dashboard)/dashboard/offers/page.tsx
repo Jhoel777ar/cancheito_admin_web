@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function OffersSkeleton() {
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-[250px]" />
       </div>
@@ -116,16 +116,16 @@ export default function OffersPage() {
 
   if (loading) {
      return (
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-6">Ofertas de Trabajo</h1>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold tracking-tight">Ofertas de Trabajo</h1>
         <OffersSkeleton />
       </div>
     );
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Ofertas de Trabajo</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold tracking-tight">Ofertas de Trabajo</h1>
       <DataTable 
         columns={offerColumns} 
         data={jobOffers} 
