@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { FileText, Briefcase, GraduationCap, Mail, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
   if (!name) return "S/N";
@@ -104,7 +105,6 @@ export default function VerifyUsersPage() {
         title: "Usuario Verificado",
         description: "El estado de verificación del usuario ha sido actualizado.",
       });
-      // The user will be automatically removed from the list by the onValue listener
     } catch (error) {
       console.error("Firebase verification update error:", error);
       toast({
@@ -135,18 +135,26 @@ export default function VerifyUsersPage() {
           {unverifiedUsers.map((user) => {
             const isProfileIncomplete = !user.profileUrl || !user.cvUrl;
             return (
-              <Card key={user.id} className="bg-card/80 backdrop-blur-sm flex flex-col">
+              <Card key={user.id} className={cn(
+                  "bg-card/80 backdrop-blur-sm flex flex-col relative",
+                  isProfileIncomplete && "border-destructive"
+              )}>
+                {isProfileIncomplete && (
+                  <Badge variant="destructive" className="absolute -top-2 -right-2">
+                    Perfil Incompleto
+                  </Badge>
+                )}
                 <CardHeader className="flex flex-row items-start gap-4">
                   <Avatar className="h-16 w-16 flex-shrink-0">
                     <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
                     <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2">
-                        <CardTitle className="text-xl truncate" title={user.fullName}>{user.fullName}</CardTitle>
-                        {isProfileIncomplete && <Badge variant="destructive" className="flex-shrink-0">Perfil Incompleto</Badge>}
-                    </div>
-                     <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1 truncate" title={user.email}><Mail size={14} /> {user.email}</p>
+                    <CardTitle className="text-xl break-words" title={user.fullName}>{user.fullName}</CardTitle>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1 break-all" title={user.email}>
+                      <Mail size={14} className="flex-shrink-0" /> 
+                      <span>{user.email}</span>
+                    </p>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 flex-grow">
