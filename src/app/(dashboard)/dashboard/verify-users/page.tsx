@@ -137,16 +137,16 @@ export default function VerifyUsersPage() {
             return (
               <Card key={user.id} className="bg-card/80 backdrop-blur-sm flex flex-col">
                 <CardHeader className="flex flex-row items-start gap-4">
-                  <Avatar className="h-16 w-16">
+                  <Avatar className="h-16 w-16 flex-shrink-0">
                     <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
                     <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <CardTitle className="text-xl">{user.fullName}</CardTitle>
-                        {isProfileIncomplete && <Badge variant="destructive">Perfil Incompleto</Badge>}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2">
+                        <CardTitle className="text-xl truncate" title={user.fullName}>{user.fullName}</CardTitle>
+                        {isProfileIncomplete && <Badge variant="destructive" className="flex-shrink-0">Perfil Incompleto</Badge>}
                     </div>
-                     <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1"><Mail size={14} /> {user.email}</p>
+                     <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1 truncate" title={user.email}><Mail size={14} /> {user.email}</p>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 flex-grow">
