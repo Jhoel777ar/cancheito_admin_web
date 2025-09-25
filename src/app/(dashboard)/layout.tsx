@@ -37,8 +37,9 @@ import {
 import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useRef } from "react";
-import { ref, onValue } from "firebase/database";
+import { useEffect, useRef, useState } from "react";
+import { ref, onValue, off } from "firebase/database";
+import { FirebaseJobOffer, FirebaseUser } from "@/lib/types";
 
 
 export default function DashboardLayout({
@@ -49,8 +50,13 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
-  const initialLoadDone = useRef(false);
-  const userCountRef = useRef(0);
+
+  // Refs to track counts and prevent initial notifications
+  const initialLoadDone = useRef({ users: false, offers: false });
+  const dataCounts = useRef({ users: 0, offers: 0 });
+
+  // State to hold user data for lookups
+  const [usersMap, setUsersMap] = useState<Map<string, FirebaseUser>>(new Map());
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -59,38 +65,87 @@ export default function DashboardLayout({
     { href: "/dashboard/companies", label: "Empresas", icon: Building2 },
     { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
   ];
-
+  
+  // Effect for user notifications
   useEffect(() => {
     const usersRef = ref(db, 'Usuarios');
     const unsubscribe = onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const usersData = snapshot.val();
-        const currentUserCount = Object.keys(usersData).length;
+      if (!snapshot.exists()) return;
+      
+      const usersData = snapshot.val();
+      const newUsersMap = new Map<string, FirebaseUser>();
+      Object.keys(usersData).forEach(key => {
+        newUsersMap.set(key, { uid: key, ...usersData[key] });
+      });
+      setUsersMap(newUsersMap);
+      
+      const currentUserCount = newUsersMap.size;
 
-        if (initialLoadDone.current && currentUserCount > userCountRef.current) {
-            toast({
-              title: "Nuevo Usuario Registrado",
-              description: "Un nuevo usuario se ha unido a la plataforma.",
-            });
-        }
-        userCountRef.current = currentUserCount;
+      if (initialLoadDone.current.users && currentUserCount > dataCounts.current.users) {
+          toast({
+            title: "Nuevo Usuario Registrado",
+            description: "Un nuevo usuario se ha unido a la plataforma.",
+          });
+      }
+      dataCounts.current.users = currentUserCount;
 
-        if (!initialLoadDone.current) {
-          initialLoadDone.current = true;
-        }
+      if (!initialLoadDone.current.users) {
+        initialLoadDone.current.users = true;
       }
     }, (error) => {
-      console.error("Firebase real-time error:", error);
-       toast({
+      console.error("Firebase real-time error (Users):", error);
+      toast({
         variant: "destructive",
         title: "Error de Conexión",
-        description: "No se pudieron obtener actualizaciones en tiempo real."
+        description: "No se pudieron obtener actualizaciones de usuarios."
       })
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   }, [toast]);
+
+  // Effect for offers notifications
+  useEffect(() => {
+    if (usersMap.size === 0) return; // Wait for users to be loaded
+
+    const offersRef = ref(db, 'ofertas');
+    const unsubscribe = onValue(offersRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+
+      const offersData = snapshot.val();
+      const currentOfferCount = Object.keys(offersData).length;
+
+      if (initialLoadDone.current.offers && currentOfferCount > dataCounts.current.offers) {
+        // Find the newest offer (crude method: assume the one that doesn't exist in previous state)
+        const newOffers: FirebaseJobOffer[] = Object.values(offersData);
+        const lastOffer = newOffers.sort((a,b) => b.createdAt - a.createdAt)[0];
+        
+        if (lastOffer) {
+          const publisher = usersMap.get(lastOffer.employerId);
+          const publisherName = publisher?.nombre_completo || 'un publicador desconocido';
+          toast({
+            title: "Nueva Oferta Publicada",
+            description: `${publisherName} ha publicado la oferta: "${lastOffer.cargo}"`,
+          });
+        }
+      }
+      dataCounts.current.offers = currentOfferCount;
+      
+      if (!initialLoadDone.current.offers) {
+        initialLoadDone.current.offers = true;
+      }
+    }, (error) => {
+      console.error("Firebase real-time error (Offers):", error);
+      toast({
+        variant: "destructive",
+        title: "Error de Conexión",
+        description: "No se pudieron obtener actualizaciones de ofertas."
+      });
+    });
+
+    return () => unsubscribe();
+  }, [toast, usersMap]);
+
 
   const handleLogout = async () => {
     try {
