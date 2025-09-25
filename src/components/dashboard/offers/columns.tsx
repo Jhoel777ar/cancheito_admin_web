@@ -16,29 +16,10 @@ function getInitials(name: string) {
 }
 
 
-export const offerColumns: ColumnDef<JobOffer>[] = [
+const baseOfferColumns: ColumnDef<JobOffer>[] = [
   {
     accessorKey: "title",
     header: "Cargo",
-  },
-  {
-    accessorKey: "employer",
-    header: "Publicado por",
-    cell: ({ row }) => {
-      const employer = row.original.employer;
-      return (
-        <Link href={`/dashboard/users/${employer.id}`} className="group flex items-center gap-3 hover:bg-muted/50 p-1 rounded-md transition-colors">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={employer.avatarUrl} data-ai-hint="person face" alt={employer.name} />
-            <AvatarFallback>{getInitials(employer.name)}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-medium group-hover:text-primary">{employer.name}</span>
-            <span className="text-sm text-muted-foreground">{employer.email}</span>
-          </div>
-        </Link>
-      );
-    },
   },
   {
     accessorKey: "location",
@@ -95,3 +76,33 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
     cell: ({ row }) => <OfferActionsCell row={row} />,
   },
 ];
+
+
+export const offerColumns: ColumnDef<JobOffer>[] = [
+  {
+    accessorKey: "title",
+    header: "Cargo",
+  },
+  {
+    accessorKey: "employer",
+    header: "Publicado por",
+    cell: ({ row }) => {
+      const employer = row.original.employer;
+      return (
+        <Link href={`/dashboard/users/${employer.id}`} className="group flex items-center gap-3 hover:bg-muted/50 p-1 rounded-md transition-colors">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={employer.avatarUrl} data-ai-hint="person face" alt={employer.name} />
+            <AvatarFallback>{getInitials(employer.name)}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-medium group-hover:text-primary">{employer.name}</span>
+            <span className="text-sm text-muted-foreground">{employer.email}</span>
+          </div>
+        </Link>
+      );
+    },
+  },
+  ...baseOfferColumns.slice(1) // Reuse all columns except the first one (title) which is already defined
+];
+
+export const userOfferColumns: ColumnDef<JobOffer>[] = [...baseOfferColumns];

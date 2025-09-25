@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Briefcase, GraduationCap, MapPin, Calendar, CheckCircle, XCircle } from "lucide-react";
-import { offerColumns } from "@/components/dashboard/offers/columns";
+import { userOfferColumns } from "@/components/dashboard/offers/columns";
 import { DataTable } from "@/components/dashboard/data-table/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -203,7 +203,7 @@ export default function UserDetailPage() {
             <div className="space-y-4">
                 <h2 className="text-2xl font-bold tracking-tight">Ofertas Publicadas ({userOffers.length})</h2>
                 <DataTable
-                    columns={offerColumns}
+                    columns={userOfferColumns}
                     data={userOffers}
                     filterColumn="title"
                     filterPlaceholder="Filtrar ofertas de este usuario..."
@@ -212,4 +212,3 @@ export default function UserDetailPage() {
         </div>
     );
 }
-
