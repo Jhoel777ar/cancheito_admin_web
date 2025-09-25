@@ -3,9 +3,10 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { JobOffer } from "@/lib/types";
+import type { JobOffer } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { OfferActionsCell } from "./offer-actions-cell";
 
 export const offerColumns: ColumnDef<JobOffer>[] = [
   {
@@ -37,7 +38,7 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
       if (isNaN(parsedPayment)) {
         return <span>{payment}</span>
       }
-      return <span>${parsedPayment.toLocaleString('en-US')}</span>
+      return <span>Bs. {parsedPayment.toLocaleString('es-BO')}</span>
     }
   },
   {
@@ -65,5 +66,9 @@ export const offerColumns: ColumnDef<JobOffer>[] = [
         </Badge>
       );
     },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <OfferActionsCell row={row} />,
   },
 ];

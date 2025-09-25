@@ -1,58 +1,122 @@
 
+
 import { DataTable } from "@/components/dashboard/data-table/data-table";
 import { offerColumns } from "@/components/dashboard/offers/columns";
 import { db } from "@/lib/firebase";
-import { ref, get } from "firebase/database";
+import { ref, onValue, off } from "firebase/database";
 import type { JobOffer, FirebaseJobOffer, FirebaseUser } from "@/lib/types";
 import { format } from "date-fns";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
-async function getJobOffers(): Promise<JobOffer[]> {
-  const offersRef = ref(db, 'ofertas');
-  const usersRef = ref(db, 'Usuarios');
-
-  const [offersSnapshot, usersSnapshot] = await Promise.all([
-    get(offersRef),
-    get(usersRef),
-  ]);
-
-  if (!offersSnapshot.exists()) {
-    return [];
-  }
-
-  const offersData = offersSnapshot.val();
-  const usersData = usersSnapshot.exists() ? usersSnapshot.val() : {};
-
-  const usersMap = new Map<string, FirebaseUser>();
-  for (const userId in usersData) {
-    if(usersData[userId]){
-      // Usamos el nombre comercial si existe, si no el nombre completo
-      const userName = usersData[userId].nombreComercial || usersData[userId].nombre_completo || 'Usuario Desconocido';
-      usersMap.set(userId, {...usersData[userId], nombre_completo: userName});
-    }
-  }
-
-  const jobOffers: JobOffer[] = Object.keys(offersData).map(key => {
-    const fbOffer: FirebaseJobOffer = offersData[key];
-    const employer = usersMap.get(fbOffer.employerId);
-    
-    return {
-      id: fbOffer.id,
-      title: fbOffer.cargo,
-      employerName: employer?.nombre_completo || 'Usuario Desconocido',
-      location: fbOffer.ubicacion,
-      modality: fbOffer.modalidad,
-      approxPayment: fbOffer.pago_aprox,
-      postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
-      status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
-    };
-  });
-
-  return jobOffers.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime());
+function OffersSkeleton() {
+  return (
+    <div className="space-y-4 p-4">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-8 w-[250px]" />
+      </div>
+      <div className="rounded-md border">
+        <div className="relative w-full overflow-auto">
+            <div className="flex flex-col space-y-3 p-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+            </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-8 w-[150px]" />
+        <Skeleton className="h-8 w-[200px]" />
+      </div>
+    </div>
+  )
 }
 
+export default function OffersPage() {
+  const [jobOffers, setJobOffers] = useState<JobOffer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-export default async function OffersPage() {
-  const jobOffers = await getJobOffers();
+  useEffect(() => {
+    const offersRef = ref(db, 'ofertas');
+    const usersRef = ref(db, 'Usuarios');
+
+    let usersData: any = {};
+
+    const usersListener = onValue(usersRef, (usersSnapshot) => {
+      if (usersSnapshot.exists()) {
+        usersData = usersSnapshot.val();
+      }
+    }, (error) => {
+      console.error("Firebase users read error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error de Carga",
+        description: "No se pudieron cargar los datos de los publicadores."
+      });
+    });
+
+    const offersListener = onValue(offersRef, (offersSnapshot) => {
+      if (!offersSnapshot.exists()) {
+        setJobOffers([]);
+        setLoading(false);
+        return;
+      }
+      
+      const offersData = offersSnapshot.val();
+      const usersMap = new Map<string, FirebaseUser>();
+      for (const userId in usersData) {
+        if(usersData[userId]){
+          const userName = usersData[userId].nombreComercial || usersData[userId].nombre_completo || 'Usuario Desconocido';
+          usersMap.set(userId, {...usersData[userId], nombre_completo: userName});
+        }
+      }
+
+      const offersList: JobOffer[] = Object.keys(offersData).map(key => {
+        const fbOffer: FirebaseJobOffer = offersData[key];
+        const employer = usersMap.get(fbOffer.employerId);
+        
+        return {
+          id: fbOffer.id,
+          title: fbOffer.cargo,
+          employerName: employer?.nombre_completo || 'Usuario Desconocido',
+          location: fbOffer.ubicacion,
+          modality: fbOffer.modalidad,
+          approxPayment: fbOffer.pago_aprox,
+          postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
+          status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
+        };
+      });
+
+      setJobOffers(offersList.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()));
+      setLoading(false);
+    }, (error) => {
+      console.error("Firebase offers read error:", error);
+      setLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Error de Carga",
+        description: "No se pudieron cargar las ofertas de trabajo."
+      });
+    });
+
+    return () => {
+      off(usersRef, 'value', usersListener);
+      off(offersRef, 'value', offersListener);
+    };
+  }, [toast]);
+
+  if (loading) {
+     return (
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight mb-6">Ofertas de Trabajo</h1>
+        <OffersSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div>
