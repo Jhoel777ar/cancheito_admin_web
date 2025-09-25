@@ -11,8 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FileText, Briefcase, GraduationCap, Mail } from "lucide-react";
+import { FileText, Briefcase, GraduationCap, Mail, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 function getInitials(name: string) {
   if (!name) return "S/N";
@@ -131,41 +132,47 @@ export default function VerifyUsersPage() {
       
       {unverifiedUsers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {unverifiedUsers.map((user) => (
-            <Card key={user.id} className="bg-card/80 backdrop-blur-sm flex flex-col">
-              <CardHeader className="flex flex-row items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
-                  <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-xl">{user.fullName}</CardTitle>
-                   <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1"><Mail size={14} /> {user.email}</p>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 flex-grow">
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><GraduationCap size={16} />{user.education}</p>
-                <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase size={16} />{user.experience}</p>
-                {user.cvUrl && (
-                  <Button asChild variant="outline" size="sm">
-                    <a href={user.cvUrl} target="_blank" rel="noopener noreferrer">
-                      <FileText className="mr-2 h-4 w-4" /> Ver CV
-                    </a>
-                  </Button>
-                )}
-              </CardContent>
-              <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-6">
-                <Label htmlFor={`verify-switch-${user.id}`} className="text-sm font-medium">
-                  Verificar Usuario
-                </Label>
-                <Switch
-                  id={`verify-switch-${user.id}`}
-                  checked={user.isVerified}
-                  onCheckedChange={(isChecked) => handleVerificationChange(user.id, isChecked)}
-                />
-              </CardFooter>
-            </Card>
-          ))}
+          {unverifiedUsers.map((user) => {
+            const isProfileIncomplete = !user.profileUrl || !user.cvUrl;
+            return (
+              <Card key={user.id} className="bg-card/80 backdrop-blur-sm flex flex-col">
+                <CardHeader className="flex flex-row items-start gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={user.profileUrl} data-ai-hint="person face" alt={user.fullName} />
+                    <AvatarFallback>{getInitials(user.fullName)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                        <CardTitle className="text-xl">{user.fullName}</CardTitle>
+                        {isProfileIncomplete && <Badge variant="destructive">Perfil Incompleto</Badge>}
+                    </div>
+                     <p className="text-sm text-muted-foreground flex items-center gap-2 pt-1"><Mail size={14} /> {user.email}</p>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3 flex-grow">
+                  <p className="text-sm text-muted-foreground flex items-center gap-2"><GraduationCap size={16} />{user.education}</p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-2"><Briefcase size={16} />{user.experience}</p>
+                  {user.cvUrl && (
+                    <Button asChild variant="outline" size="sm">
+                      <a href={user.cvUrl} target="_blank" rel="noopener noreferrer">
+                        <FileText className="mr-2 h-4 w-4" /> Ver CV
+                      </a>
+                    </Button>
+                  )}
+                </CardContent>
+                <CardFooter className="flex justify-between items-center bg-muted/50 py-3 px-6">
+                  <Label htmlFor={`verify-switch-${user.id}`} className="text-sm font-medium">
+                    Verificar Usuario
+                  </Label>
+                  <Switch
+                    id={`verify-switch-${user.id}`}
+                    checked={user.isVerified}
+                    onCheckedChange={(isChecked) => handleVerificationChange(user.id, isChecked)}
+                  />
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center text-center py-20 rounded-lg border border-dashed">

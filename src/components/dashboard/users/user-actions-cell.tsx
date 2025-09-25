@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -24,8 +25,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@/lib/types";
-import { getAccountControlReasoning, updateUserAccountState } from "@/app/(dashboard)/dashboard/users/actions";
+import { getAccountControlReasoning, updateUserAccountState, updateUserVerification } from "@/app/(dashboard)/dashboard/users/actions";
 import { UserEditDialog } from "./user-edit-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 interface UserActionsCellProps {
@@ -94,6 +97,22 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
 
     setIsAlertOpen(true);
   };
+  
+  const handleVerificationChange = async (isVerified: boolean) => {
+    const result = await updateUserVerification(user.id, isVerified);
+    if(result.success) {
+      toast({
+        title: "Verificación Actualizada",
+        description: `El usuario ${user.fullName} ahora está ${isVerified ? 'verificado' : 'no verificado'}.`
+      })
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error al Verificar",
+        description: result.error || "No se pudo actualizar el estado de verificación."
+      })
+    }
+  }
 
 
   return (
@@ -139,16 +158,27 @@ export function UserActionsCell({ row }: UserActionsCellProps) {
             <Edit className="mr-2 h-4 w-4" /> Editar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+           <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+            <Label htmlFor={`verify-${user.id}`} className="flex-1 pr-2">
+              {user.isVerified ? "Verificado" : "No Verificado"}
+            </Label>
+            <Switch
+              id={`verify-${user.id}`}
+              checked={user.isVerified}
+              onCheckedChange={handleVerificationChange}
+            />
+          </div>
+          <DropdownMenuSeparator />
           {user.accountState === 'Activa' ? (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={() => handleActionClick("suspend")}
             >
-              Suspender
+              Suspender Cuenta
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={() => handleActionClick("activate")}>
-              Activar
+              Activar Cuenta
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

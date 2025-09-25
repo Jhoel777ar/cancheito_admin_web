@@ -50,10 +50,10 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/users", label: "Users", icon: Users },
-    { href: "/dashboard/verify-users", label: "Verify Users", icon: UserCheck },
-    { href: "/dashboard/companies", label: "Companies", icon: Building2 },
-    { href: "/dashboard/offers", label: "Job Offers", icon: Briefcase },
+    { href: "/dashboard/users", label: "Usuarios", icon: Users },
+    { href: "/dashboard/verify-users", label: "Verificar Usuarios", icon: UserCheck },
+    { href: "/dashboard/companies", label: "Empresas", icon: Building2 },
+    { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
   ];
 
   const handleLogout = async () => {
@@ -116,16 +116,16 @@ export default function DashboardLayout({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSupportClick}>
                 <LifeBuoy className="mr-2 h-4 w-4" />
-                <span>Support</span>
+                <span>Soporte</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>Cerrar Sesión</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
