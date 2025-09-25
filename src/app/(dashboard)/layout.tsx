@@ -27,7 +27,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
   Users,
-  Building2,
   Briefcase,
   FlameKindling,
   LogOut,
@@ -62,7 +61,6 @@ export default function DashboardLayout({
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/users", label: "Usuarios", icon: Users },
     { href: "/dashboard/verify-users", label: "Verificar Usuarios", icon: UserCheck },
-    { href: "/dashboard/companies", label: "Empresas", icon: Building2 },
     { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
   ];
   
