@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import type { Row } from "@tanstack/react-table";
-import { MoreHorizontal, PowerOff } from "lucide-react";
+import { MoreHorizontal, PowerOff, Power } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,46 +35,72 @@ export function OfferActionsCell({ row }: OfferActionsCellProps) {
   const offer = row.original;
   const { toast } = useToast();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [actionType, setActionType] = useState<'activate' | 'deactivate' | null>(null);
 
-  const handleDeactivateConfirm = async () => {
-    const result = await updateOfferStatus(offer.id, 'CERRADA');
+  const handleConfirm = async () => {
+    if (!actionType) return;
+
+    const newStatus = actionType === 'activate' ? 'ACTIVA' : 'CERRADA';
+    const result = await updateOfferStatus(offer.id, newStatus);
+    
     setIsAlertOpen(false);
 
     if (result.success) {
       toast({
-        title: "Oferta Desactivada",
-        description: `La oferta "${offer.title}" ha sido marcada como cerrada.`,
+        title: `Oferta ${actionType === 'activate' ? 'Activada' : 'Desactivada'}`,
+        description: `La oferta "${offer.title}" ha sido actualizada.`,
       });
     } else {
       toast({
         variant: "destructive",
-        title: "Error al Desactivar",
+        title: `Error al ${actionType === 'activate' ? 'Activar' : 'Desactivar'}`,
         description: result.error || "Ocurrió un error inesperado.",
       });
     }
+    setActionType(null);
   };
 
-  if (offer.status !== 'Activa') {
-    return null; // No actions for non-active offers
-  }
+  const openAlertDialog = (type: 'activate' | 'deactivate') => {
+    setActionType(type);
+    setIsAlertOpen(true);
+  };
+  
+  const alertContent = {
+    activate: {
+      title: "¿Estás seguro de que quieres reactivar esta oferta?",
+      description: `Esta acción marcará la oferta "${offer.title}" como "Activa" y volverá a ser visible.`,
+      actionLabel: "Confirmar Activación",
+      actionClass: "bg-primary hover:bg-primary/90",
+    },
+    deactivate: {
+      title: "¿Estás seguro de que quieres desactivar esta oferta?",
+      description: `Esta acción marcará la oferta "${offer.title}" como "Cerrada".`,
+      actionLabel: "Confirmar Desactivación",
+      actionClass: "bg-destructive hover:bg-destructive/90",
+    },
+  };
+
+  const currentAlert = actionType ? alertContent[actionType] : null;
 
   return (
     <>
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro de que quieres desactivar esta oferta?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción marcará la oferta <span className="font-semibold">"{offer.title}"</span> como "Cerrada" y no se podrá revertir fácilmente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeactivateConfirm} className="bg-destructive hover:bg-destructive/90">
-              Confirmar Desactivación
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        {currentAlert && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{currentAlert.title}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {currentAlert.description}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setActionType(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirm} className={currentAlert.actionClass}>
+                {currentAlert.actionLabel}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
       </AlertDialog>
 
       <DropdownMenu>
@@ -87,13 +113,22 @@ export function OfferActionsCell({ row }: OfferActionsCellProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setIsAlertOpen(true)}
-          >
-            <PowerOff className="mr-2 h-4 w-4" />
-            Desactivar Oferta
-          </DropdownMenuItem>
+          {offer.status === 'Activa' ? (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => openAlertDialog('deactivate')}
+            >
+              <PowerOff className="mr-2 h-4 w-4" />
+              Desactivar Oferta
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              onClick={() => openAlertDialog('activate')}
+            >
+              <Power className="mr-2 h-4 w-4" />
+              Activar Oferta
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
