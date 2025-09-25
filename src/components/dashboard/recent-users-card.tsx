@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card"
 import { FirebaseUser, User } from "@/lib/types"
 import { db } from "@/lib/firebase";
-import { ref, get, query, orderByChild, limitToLast } from "firebase/database";
+import { ref, get, query } from "firebase/database";
 import { format } from "date-fns";
 
 function getInitials(name: string) {
@@ -25,12 +25,12 @@ function getInitials(name: string) {
 }
 
 async function getRecentUsers(): Promise<User[]> {
-  const usersRef = query(ref(db, 'Usuarios'), orderByChild('tiempo_registro'), limitToLast(5));
+  const usersRef = query(ref(db, 'Usuarios'));
   const snapshot = await get(usersRef);
 
   if (snapshot.exists()) {
     const usersData = snapshot.val();
-    const usersList = Object.keys(usersData).map(key => {
+    const usersList: User[] = Object.keys(usersData).map(key => {
       const fbUser: FirebaseUser = usersData[key];
       const registrationTime = fbUser.tiempo_registro ? new Date(fbUser.tiempo_registro) : new Date();
       return {
@@ -39,11 +39,20 @@ async function getRecentUsers(): Promise<User[]> {
         email: fbUser.email || 'Sin email',
         registrationDate: format(registrationTime, 'yyyy-MM-dd'),
         profileUrl: fbUser.fotoPerfilUrl || '',
-        isVerified: true,
+        isVerified: fbUser.usuario_verificado === true,
+        accountState: fbUser.estadoCuenta || 'Activa',
+        experience: fbUser.experiencia || 'No especificado',
+        education: fbUser.formacion || 'No especificado',
+        userType: fbUser.tipoUsuario || 'No especificado',
+        location: fbUser.ubicacion || 'No especificado',
+        cvUrl: fbUser.cvUrl || '',
       };
     });
-    // The data is returned in ascending order, so we reverse it to show the most recent first
-    return usersList.reverse();
+    
+    // Sort users by registration time in descending order and take the top 5
+    return usersList
+      .sort((a, b) => new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime())
+      .slice(0, 5);
   }
   return [];
 }

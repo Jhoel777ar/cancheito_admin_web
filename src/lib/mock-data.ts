@@ -24,11 +24,12 @@ export const mockJobOffers: JobOffer[] = [
   { id: 'job_6', title: 'Cybersecurity Analyst', companyName: 'FinSecure', location: 'Singapore', type: 'Full-time', postedDate: format(subDays(now, 60), 'yyyy-MM-dd'), status: 'Closed' },
 ];
 
+// This is no longer used for dashboard stats, they are now fetched live.
 export const dashboardStats = {
-  totalUsers: mockUsers.length,
+  totalUsers: 0,
   activeCompanies: mockCompanies.length,
   openJobOffers: mockJobOffers.filter(j => j.status === 'Open').length,
-  newUsersThisMonth: mockUsers.filter(u => new Date(u.registrationDate) > subDays(now, 30)).length,
+  newUsersThisMonth: 0,
 };
 
 export const userSignupsData = [
