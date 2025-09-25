@@ -1,3 +1,4 @@
+
 import { OverviewChart } from "@/components/dashboard/overview-chart";
 import { RecentUsersCard } from "@/components/dashboard/recent-users-card";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -122,8 +123,8 @@ export default async function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard title="Total de Usuarios" value={userAnalytics.totalUsers} icon={Users} />
           <StatsCard title="Usuarios Verificados" value={userAnalytics.verifiedUsers} icon={UserCheck} />
-          <Stats.card title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
-          <Stats.card title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
+          <StatsCard title="Cuentas Suspendidas" value={userAnalytics.suspendedUsers} icon={UserX} />
+          <StatsCard title="Nuevos Usuarios (30d)" value={userAnalytics.newUsersLast30Days} icon={UserPlus} />
         </div>
       </div>
        <div>
