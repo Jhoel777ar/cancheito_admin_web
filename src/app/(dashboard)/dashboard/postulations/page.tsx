@@ -72,22 +72,25 @@ export default function PostulationsPage() {
       
       const postulationsData = snapshot.val();
       const postulationsList: Postulation[] = Object.keys(postulationsData).map(key => {
-        const fbPostulation: FirebasePostulation = { id: key, ...postulationsData[key] };
+        const fbPostulationData = postulationsData[key];
         
-        const applicant = usersData[fbPostulation.applicantId];
-        const offer = offersData[fbPostulation.offerId];
+        // Derive applicantId from the composite key if not present in the object
+        const applicantId = fbPostulationData.applicantId || key.split('_')[1];
+
+        const applicant = usersData[applicantId];
+        const offer = offersData[fbPostulationData.offerId];
         const employer = offer ? usersData[offer.employerId] : undefined;
 
         return {
-          id: fbPostulation.id,
+          id: key,
           applicant: {
-            id: applicant?.uid || fbPostulation.applicantId,
+            id: applicant?.uid || applicantId,
             name: applicant?.nombre_completo || 'Usuario Desconocido',
             email: applicant?.email || 'Email no disponible',
             avatarUrl: applicant?.fotoPerfilUrl || ''
           },
           offer: {
-            id: offer?.id || fbPostulation.offerId,
+            id: offer?.id || fbPostulationData.offerId,
             title: offer?.cargo || 'Oferta Desconocida',
             employer: {
                 id: employer?.uid || offer?.employerId || '',
@@ -101,8 +104,8 @@ export default function PostulationsPage() {
             postedDate: offer ? format(new Date(offer.createdAt), 'yyyy-MM-dd') : 'Fecha desconocida',
             status: offer?.estado === 'ACTIVA' ? 'Activa' : 'Cerrada'
           },
-          postulationDate: fbPostulation.postulationDate ? format(new Date(fbPostulation.postulationDate), 'yyyy-MM-dd HH:mm') : 'Fecha desconocida',
-          status: fbPostulation.status || 'Enviada',
+          postulationDate: fbPostulationData.fechaPostulacion ? format(new Date(fbPostulationData.fechaPostulacion), 'yyyy-MM-dd HH:mm') : 'Fecha desconocida',
+          status: fbPostulationData.status || 'Enviada',
         };
       });
 

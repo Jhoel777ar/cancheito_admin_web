@@ -81,7 +81,7 @@ export type FirebasePostulation = {
     id: string;
     applicantId: string;
     offerId: string;
-    postulationDate: number;
+    fechaPostulacion: number; // Corrected field name
     status: 'Enviada' | 'Revisada' | 'Rechazada';
 }
 
