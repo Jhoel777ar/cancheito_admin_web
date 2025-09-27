@@ -12,12 +12,14 @@ import type { FirebaseUser, FirebaseJobOffer, FirebasePostulation, User, JobOffe
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar as CalendarIcon, Download, Users, Briefcase, ClipboardList } from "lucide-react";
+import { Calendar as CalendarIcon, Download, Users, Briefcase, ClipboardList, ChevronDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -88,7 +90,6 @@ export default function ReportsPage() {
     const [allOffers, setAllOffers] = useState<JobOffer[]>([]);
     const [allPostulations, setAllPostulations] = useState<Postulation[]>([]);
     
-    // Using refs to hold maps to avoid re-triggering effects unnecessarily
     const usersMapRef = useRef(new Map<string, User>());
     const offersMapRef = useRef(new Map<string, JobOffer>());
 
@@ -113,7 +114,7 @@ export default function ReportsPage() {
                     id: fbUser.uid || key,
                     fullName: fbUser.nombre_completo || 'Sin nombre',
                     email: fbUser.email || 'Sin email',
-                    registrationDate: format(new Date(fbUser.tiempo_registro || 0), 'yyyy-MM-dd'),
+                    registrationDate: fbUser.tiempo_registro ? format(new Date(fbUser.tiempo_registro), 'yyyy-MM-dd') : 'Fecha desconocida',
                     profileUrl: fbUser.fotoPerfilUrl || '',
                     isVerified: fbUser.usuario_verificado === true,
                     experience: fbUser.experiencia || 'No especificado',
@@ -154,7 +155,7 @@ export default function ReportsPage() {
                     location: fbOffer.ubicacion,
                     modality: fbOffer.modalidad,
                     approxPayment: fbOffer.pago_aprox,
-                    postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
+                    postedDate: fbOffer.createdAt ? format(new Date(fbOffer.createdAt), 'yyyy-MM-dd') : 'Fecha desconocida',
                     status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
                 };
             });
@@ -194,7 +195,7 @@ export default function ReportsPage() {
                         postedDate: offer?.postedDate || 'Fecha desconocida',
                         status: offer?.status || 'Cerrada'
                     },
-                    postulationDate: format(new Date(fbPostulation.fechaPostulacion), 'yyyy-MM-dd'),
+                    postulationDate: fbPostulation.fechaPostulacion ? format(new Date(fbPostulation.fechaPostulacion), 'yyyy-MM-dd') : 'Fecha desconocida',
                     postulationStatus: fbPostulation.estado_postulacion || 'Enviada',
                  }
              });
@@ -220,9 +221,9 @@ export default function ReportsPage() {
         }
         const interval = { start: startOfDay(date.from), end: endOfDay(date.to) };
 
-        const users = allUsers.filter(u => isWithinInterval(new Date(u.registrationDate), interval));
-        const offers = allOffers.filter(o => isWithinInterval(new Date(o.postedDate), interval));
-        const postulations = allPostulations.filter(p => isWithinInterval(new Date(p.postulationDate), interval));
+        const users = allUsers.filter(u => u.registrationDate !== 'Fecha desconocida' && isWithinInterval(new Date(u.registrationDate), interval));
+        const offers = allOffers.filter(o => o.postedDate !== 'Fecha desconocida' && isWithinInterval(new Date(o.postedDate), interval));
+        const postulations = allPostulations.filter(p => p.postulationDate !== 'Fecha desconocida' && isWithinInterval(new Date(p.postulationDate), interval));
 
         const generateChartData = (data, dateField, dataLabel) => {
             const countsByDay = data.reduce((acc, item) => {
@@ -252,7 +253,7 @@ export default function ReportsPage() {
         }
     }, [date, allUsers, allOffers, allPostulations]);
 
-    const handleExport = () => {
+    const handleCSVExport = () => {
         const { users, offers, postulations } = filteredData;
         if (users.length === 0 && offers.length === 0 && postulations.length === 0) {
             toast({
@@ -298,7 +299,69 @@ export default function ReportsPage() {
         link.click();
         document.body.removeChild(link);
     }
+    
+    const handleExcelExport = () => {
+        const { users, offers, postulations } = filteredData;
+        if (users.length === 0 && offers.length === 0 && postulations.length === 0) {
+            toast({
+                variant: "destructive",
+                title: "No hay datos",
+                description: "No hay datos para exportar en el rango de fechas seleccionado."
+            });
+            return;
+        }
 
+        const wb = XLSX.utils.book_new();
+
+        const processSheet = (data, headers, sheetName) => {
+            const ws_data = [
+                headers,
+                ...data
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+            // Style headers
+            const headerStyle = { font: { bold: true }, fill: { fgColor: { rgb: "FFD9EAD3" } }, border: { bottom: { style: "thin" } } };
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                const addr = XLSX.utils.encode_cell({ r: 0, c: C });
+                ws[addr].s = headerStyle;
+            }
+
+            // Auto-fit columns
+            const colWidths = headers.map((_, i) => ({
+                wch: Math.max(
+                    headers[i].length,
+                    ...data.map(row => (row[i] ? String(row[i]).length : 0))
+                )
+            }));
+            ws['!cols'] = colWidths;
+
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        };
+        
+        processSheet(
+             users.map(u => [u.id, u.fullName, u.email, u.registrationDate, u.userType, u.accountState, u.isVerified, u.location, u.education, u.experience]),
+            ["ID Usuario", "Nombre Completo", "Email", "Fecha Registro", "Tipo Usuario", "Estado Cuenta", "Verificado", "Ubicación", "Formación", "Experiencia"],
+            "Usuarios"
+        );
+        
+        processSheet(
+            offers.map(o => [o.id, o.title, o.employer.id, o.employer.name, o.employer.email, o.postedDate, o.status, o.location, o.modality, o.approxPayment]),
+            ["ID Oferta", "Cargo", "ID Publicador", "Nombre Publicador", "Email Publicador", "Fecha Publicación", "Estado Oferta", "Ubicación", "Modalidad", "Pago Aprox."],
+            "Ofertas"
+        );
+
+        processSheet(
+             postulations.map(p => [p.id, p.applicant.id, p.applicant.name, p.applicant.email, p.offer.id, p.offer.title, p.offer.employer.id, p.offer.employer.name, p.postulationDate, p.postulationStatus]),
+            ["ID Postulación", "ID Postulante", "Nombre Postulante", "Email Postulante", "ID Oferta", "Título Oferta", "ID Publicador", "Nombre Publicador", "Fecha Postulación", "Estado Postulación"],
+            "Postulaciones"
+        );
+
+        const fromDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
+        const toDate = date?.to ? format(date.to, 'yyyy-MM-dd') : '';
+        XLSX.writeFile(wb, `reporte_${fromDate}_a_${toDate}.xlsx`);
+    }
 
     if (loading) {
         return (
@@ -347,10 +410,23 @@ export default function ReportsPage() {
                             />
                         </PopoverContent>
                     </Popover>
-                    <Button onClick={handleExport}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Exportar
-                    </Button>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button>
+                                <Download className="mr-2 h-4 w-4" />
+                                Exportar
+                                <ChevronDown className="ml-2 h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={handleCSVExport}>
+                                Exportar como CSV
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleExcelExport}>
+                                Exportar como Excel (.xlsx)
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
