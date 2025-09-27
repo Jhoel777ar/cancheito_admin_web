@@ -380,8 +380,7 @@ export default function UserDetailPage() {
                      <div className="flex items-center space-x-2">
                         <Label htmlFor={`verify-switch-${user.id}`} className="font-medium">
                             {user.isVerified ? "Usuario Verificado" : "Verificar Usuario"}
-                        </Label>
-                        <Switch
+                        </Label>                        <Switch
                             id={`verify-switch-${user.id}`}
                             checked={user.isVerified}
                             onCheckedChange={handleVerificationChange}
