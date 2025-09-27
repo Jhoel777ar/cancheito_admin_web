@@ -80,10 +80,10 @@ export type FirebaseJobOffer = {
 // Data types for Postulations
 export type FirebasePostulation = {
     id: string;
-    applicantId: string;
+    postulanteId: string;
     offerId: string;
     fechaPostulacion: number; 
-    status?: 'Enviada' | 'Revisada' | 'Rechazada' | 'Aceptada'; // This field will hold the postulation status
+    estado_postulacion?: 'Enviada' | 'Revisada' | 'Rechazada' | 'Aceptada' | 'pendiente'; 
 }
 
 export type ApplicantProfile = {
@@ -98,5 +98,5 @@ export type Postulation = {
     applicant: ApplicantProfile;
     offer: JobOffer;
     postulationDate: string;
-    status: string;
+    postulationStatus: string;
 }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -74,8 +75,7 @@ export default function PostulationsPage() {
       const postulationsList: Postulation[] = Object.keys(postulationsData).map(key => {
         const fbPostulationData: FirebasePostulation = postulationsData[key];
         
-        // Derive applicantId from the composite key if not present in the object
-        const applicantId = fbPostulationData.applicantId || key.split('_')[1];
+        const applicantId = fbPostulationData.postulanteId || key.split('_')[1];
 
         const applicant = usersData[applicantId];
         const offer = offersData[fbPostulationData.offerId];
@@ -105,7 +105,7 @@ export default function PostulationsPage() {
             status: offer?.estado === 'ACTIVA' ? 'Activa' : 'Cerrada'
           },
           postulationDate: fbPostulationData.fechaPostulacion ? format(new Date(fbPostulationData.fechaPostulacion), 'yyyy-MM-dd HH:mm') : 'Fecha desconocida',
-          status: fbPostulationData.status || 'Enviada',
+          postulationStatus: fbPostulationData.estado_postulacion || 'Enviada',
         };
       });
 

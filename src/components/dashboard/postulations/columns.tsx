@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -60,19 +61,20 @@ export const postulationColumns: ColumnDef<Postulation>[] = [
       )
     },
   },
-    {
-    accessorKey: "status",
-    header: "Estado",
+  {
+    accessorKey: "postulationStatus",
+    header: "Estado Postulación",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      const variant = {
-        'Aceptada': 'secondary',
-        'Rechazada': 'destructive',
-        'Revisada': 'default',
-        'Enviada': 'outline',
-      }[status] || 'outline';
+      const status = (row.getValue("postulationStatus") as string).toLowerCase();
+      
+      let variant: "secondary" | "destructive" | "default" | "outline" = "outline";
+      if (status === 'aceptada') variant = 'secondary';
+      if (status === 'rechazada') variant = 'destructive';
+      if (status === 'revisada') variant = 'default';
+      if (status === 'pendiente') variant = 'outline';
 
-      return <Badge variant={variant as "secondary" | "destructive" | "default" | "outline"}>{status}</Badge>;
+
+      return <Badge variant={variant} className="capitalize">{status}</Badge>;
     },
   },
 ];
