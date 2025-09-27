@@ -33,14 +33,23 @@ import {
   LifeBuoy,
   UserCheck,
   ClipboardList,
+  Bell,
 } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useRef, useState } from "react";
 import { ref, onValue, off } from "firebase/database";
-import { FirebaseJobOffer, FirebaseUser } from "@/lib/types";
+import { FirebaseJobOffer, FirebasePostulation, FirebaseUser } from "@/lib/types";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 
+type Notification = {
+  id: string;
+  title: string;
+  description: string;
+  timestamp: Date;
+}
 
 export default function DashboardLayout({
   children,
@@ -51,12 +60,27 @@ export default function DashboardLayout({
   const router = useRouter();
   const { toast } = useToast();
 
-  // Refs to track counts and prevent initial notifications
-  const initialLoadDone = useRef({ users: false, offers: false });
-  const dataCounts = useRef({ users: 0, offers: 0 });
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [hasUnread, setHasUnread] = useState(false);
 
-  // State to hold user data for lookups
+  // Refs to track counts and prevent initial notifications
+  const initialLoadDone = useRef({ users: false, offers: false, postulations: false });
+  const dataCounts = useRef({ users: 0, offers: 0, postulations: 0 });
+
+  // State to hold user and offer data for lookups
   const [usersMap, setUsersMap] = useState<Map<string, FirebaseUser>>(new Map());
+  const [offersMap, setOffersMap] = useState<Map<string, FirebaseJobOffer>>(new Map());
+
+  const addNotification = (title: string, description: string) => {
+    const newNotification: Notification = {
+      id: new Date().toISOString(),
+      title,
+      description,
+      timestamp: new Date(),
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+    setHasUnread(true);
+  };
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -82,10 +106,9 @@ export default function DashboardLayout({
       const currentUserCount = newUsersMap.size;
 
       if (initialLoadDone.current.users && currentUserCount > dataCounts.current.users) {
-          toast({
-            title: "Nuevo Usuario Registrado",
-            description: "Un nuevo usuario se ha unido a la plataforma.",
-          });
+          const message = "Un nuevo usuario se ha unido a la plataforma.";
+          toast({ title: "Nuevo Usuario Registrado", description: message });
+          addNotification("Nuevo Usuario", message);
       }
       dataCounts.current.users = currentUserCount;
 
@@ -94,39 +117,38 @@ export default function DashboardLayout({
       }
     }, (error) => {
       console.error("Firebase real-time error (Users):", error);
-      toast({
-        variant: "destructive",
-        title: "Error de Conexión",
-        description: "No se pudieron obtener actualizaciones de usuarios."
-      })
     });
 
-    return () => unsubscribe();
+    return () => off(usersRef, 'value', unsubscribe);
   }, [toast]);
 
   // Effect for offers notifications
   useEffect(() => {
-    if (usersMap.size === 0 && initialLoadDone.current.users === false) return; // Wait for users to be loaded at least once
+    if (usersMap.size === 0 && !initialLoadDone.current.users) return;
 
     const offersRef = ref(db, 'ofertas');
     const unsubscribe = onValue(offersRef, (snapshot) => {
       if (!snapshot.exists()) return;
 
       const offersData = snapshot.val();
-      const currentOfferCount = Object.keys(offersData).length;
+      const newOffersMap = new Map<string, FirebaseJobOffer>();
+      Object.keys(offersData).forEach(key => {
+          newOffersMap.set(key, offersData[key]);
+      });
+      setOffersMap(newOffersMap);
+
+      const currentOfferCount = newOffersMap.size;
 
       if (initialLoadDone.current.offers && currentOfferCount > dataCounts.current.offers) {
-        // Find the newest offer (crude method: assume the one that doesn't exist in previous state)
-        const newOffers: FirebaseJobOffer[] = Object.values(offersData);
+        const newOffers: FirebaseJobOffer[] = Array.from(newOffersMap.values());
         const lastOffer = newOffers.sort((a,b) => b.createdAt - a.createdAt)[0];
         
         if (lastOffer) {
           const publisher = usersMap.get(lastOffer.employerId);
           const publisherName = publisher?.nombre_completo || 'un publicador desconocido';
-          toast({
-            title: "Nueva Oferta Publicada",
-            description: `${publisherName} ha publicado la oferta: "${lastOffer.cargo}"`,
-          });
+          const message = `${publisherName} ha publicado la oferta: "${lastOffer.cargo}"`;
+          toast({ title: "Nueva Oferta Publicada", description: message });
+          addNotification("Nueva Oferta", message);
         }
       }
       dataCounts.current.offers = currentOfferCount;
@@ -136,15 +158,51 @@ export default function DashboardLayout({
       }
     }, (error) => {
       console.error("Firebase real-time error (Offers):", error);
-      toast({
-        variant: "destructive",
-        title: "Error de Conexión",
-        description: "No se pudieron obtener actualizaciones de ofertas."
-      });
     });
 
-    return () => unsubscribe();
+    return () => off(offersRef, 'value', unsubscribe);
   }, [toast, usersMap]);
+
+  // Effect for postulations notifications
+  useEffect(() => {
+    if (usersMap.size === 0 || offersMap.size === 0) return;
+
+    const postulationsRef = ref(db, 'postulaciones');
+    const unsubscribe = onValue(postulationsRef, (snapshot) => {
+      if (!snapshot.exists()) return;
+
+      const postulationsData = snapshot.val();
+      const currentPostulationCount = Object.keys(postulationsData).length;
+
+      if (initialLoadDone.current.postulations && currentPostulationCount > dataCounts.current.postulations) {
+          const newPostulations: FirebasePostulation[] = Object.values(postulationsData);
+          const lastPostulation = newPostulations.sort((a,b) => b.fechaPostulacion - a.fechaPostulacion)[0];
+
+          if (lastPostulation) {
+              const applicant = usersMap.get(lastPostulation.postulanteId);
+              const offer = offersMap.get(lastPostulation.offerId);
+              
+              const applicantName = applicant?.nombre_completo || 'Alguien';
+              const offerTitle = offer?.cargo || 'una oferta';
+
+              const message = `${applicantName} se ha postulado a la oferta: "${offerTitle}".`;
+              toast({ title: "Nueva Postulación", description: message });
+              addNotification("Nueva Postulación", message);
+          }
+      }
+      dataCounts.current.postulations = currentPostulationCount;
+      
+      if (!initialLoadDone.current.postulations) {
+        initialLoadDone.current.postulations = true;
+      }
+
+    }, (error) => {
+        console.error("Firebase real-time error (Postulations):", error);
+    });
+    
+    return () => off(postulationsRef, 'value', unsubscribe);
+
+  }, [toast, usersMap, offersMap]);
 
 
   const handleLogout = async () => {
@@ -197,32 +255,70 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
           <SidebarTrigger className="md:hidden" />
           <div className="flex-1" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src="https://picsum.photos/seed/admin/100/100" data-ai-hint="person face" alt="@admin" />
-                  <AvatarFallback>AD</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSupportClick}>
-                <LifeBuoy className="mr-2 h-4 w-4" />
-                <span>Soporte</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar Sesión</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-4">
+            <DropdownMenu onOpenChange={(open) => !open && setHasUnread(false)}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Bell className="h-5 w-5" />
+                  {hasUnread && (
+                    <span className="absolute right-0 top-0 block h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+                  )}
+                  <span className="sr-only">Ver notificaciones</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel className="flex items-center justify-between">
+                  Notificaciones
+                  {notifications.length > 0 && (
+                     <Button variant="link" size="sm" className="h-auto p-0" onClick={() => {setNotifications([]); setHasUnread(false)}}>
+                        Limpiar todo
+                     </Button>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {notifications.length > 0 ? (
+                  notifications.map(notif => (
+                    <DropdownMenuItem key={notif.id} className="flex flex-col items-start gap-1 whitespace-normal">
+                       <p className="font-semibold">{notif.title}</p>
+                       <p className="text-sm text-muted-foreground">{notif.description}</p>
+                       <p className="text-xs text-muted-foreground/80">{formatDistanceToNow(notif.timestamp, { addSuffix: true, locale: es })}</p>
+                    </DropdownMenuItem>
+                  ))
+                ) : (
+                  <p className="p-4 text-center text-sm text-muted-foreground">No hay notificaciones nuevas.</p>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src="https://picsum.photos/seed/admin/100/100" data-ai-hint="person face" alt="@admin" />
+                    <AvatarFallback>AD</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSupportClick}>
+                  <LifeBuoy className="mr-2 h-4 w-4" />
+                  <span>Soporte</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar Sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+    

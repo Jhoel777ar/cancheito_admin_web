@@ -75,7 +75,7 @@ export default function PostulationsPage() {
       const postulationsList: Postulation[] = Object.keys(postulationsData).map(key => {
         const fbPostulationData: FirebasePostulation = postulationsData[key];
         
-        const applicantId = fbPostulationData.postulanteId || key.split('_')[1];
+        const applicantId = fbPostulationData.postulanteId;
 
         const applicant = usersData[applicantId];
         const offer = offersData[fbPostulationData.offerId];
@@ -150,3 +150,5 @@ export default function PostulationsPage() {
     </div>
   );
 }
+
+    

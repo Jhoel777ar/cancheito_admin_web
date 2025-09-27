@@ -1,5 +1,6 @@
 
 
+
 export type User = {
   id: string;
   fullName: string;
@@ -100,3 +101,5 @@ export type Postulation = {
     postulationDate: string;
     postulationStatus: string;
 }
+
+    
