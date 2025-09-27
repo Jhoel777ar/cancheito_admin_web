@@ -71,10 +71,57 @@ export const postulationColumns: ColumnDef<Postulation>[] = [
       if (status === 'aceptada') variant = 'secondary';
       if (status === 'rechazada') variant = 'destructive';
       if (status === 'revisada') variant = 'default';
-      if (status === 'pendiente') variant = 'outline';
+      // Default to outline for 'enviada', 'pendiente', etc.
+      
+      return <Badge variant={variant} className="capitalize">{status}</Badge>;
+    },
+  },
+];
 
+
+export const userPostulationColumns: ColumnDef<Postulation>[] = [
+    {
+    accessorKey: "offer",
+    header: "Oferta Aplicada",
+    cell: ({ row }) => {
+      const offer = row.original.offer;
+      return (
+         <div className="flex flex-col">
+            <span className="font-medium">{offer.title}</span>
+            <span className="text-sm text-muted-foreground">Publicada por: {offer.employer.name}</span>
+          </div>
+      );
+    }
+  },
+  {
+    accessorKey: "postulationDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Fecha de Postulación
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "postulationStatus",
+    header: "Estado Postulación",
+    cell: ({ row }) => {
+      const status = (row.getValue("postulationStatus") as string).toLowerCase();
+      
+      let variant: "secondary" | "destructive" | "default" | "outline" = "outline";
+      if (status === 'aceptada') variant = 'secondary';
+      if (status === 'rechazada') variant = 'destructive';
+      if (status === 'revisada') variant = 'default';
 
       return <Badge variant={variant} className="capitalize">{status}</Badge>;
     },
   },
 ];
+
+
+    

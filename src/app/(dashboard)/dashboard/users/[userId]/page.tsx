@@ -1,16 +1,16 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
-import type { FirebaseUser, User, JobOffer, FirebaseJobOffer } from "@/lib/types";
+import type { FirebaseUser, User, JobOffer, FirebaseJobOffer, Postulation, FirebasePostulation } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Briefcase, GraduationCap, MapPin, Calendar, CheckCircle, XCircle, Edit, UserX, UserCheck, AlertTriangle, Loader2 } from "lucide-react";
 import { userOfferColumns } from "@/components/dashboard/offers/columns";
+import { userPostulationColumns } from "@/components/dashboard/postulations/columns";
 import { DataTable } from "@/components/dashboard/data-table/data-table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -76,6 +76,7 @@ export default function UserDetailPage() {
 
     const [user, setUser] = useState<User | null>(null);
     const [userOffers, setUserOffers] = useState<JobOffer[]>([]);
+    const [userPostulations, setUserPostulations] = useState<Postulation[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditOpen, setIsEditOpen] = useState(false);
     
@@ -95,7 +96,23 @@ export default function UserDetailPage() {
         setLoading(true);
         const userRef = ref(db, `Usuarios/${userId}`);
         const offersRef = ref(db, 'ofertas');
+        const usersRef = ref(db, 'Usuarios');
+        const postulationsRef = ref(db, 'postulaciones');
 
+        let usersData: { [id: string]: FirebaseUser } = {};
+        let offersData: { [id: string]: FirebaseJobOffer } = {};
+        
+        // Pre-load users data
+        const allUsersListener = onValue(usersRef, (snapshot) => {
+            usersData = snapshot.val() || {};
+        });
+
+        // Pre-load offers data
+        const allOffersListener = onValue(offersRef, (snapshot) => {
+            offersData = snapshot.val() || {};
+        });
+
+        // Main user data listener
         const userListener = onValue(userRef, (snapshot) => {
             if (snapshot.exists()) {
                 const fbUser: FirebaseUser = snapshot.val();
@@ -122,43 +139,93 @@ export default function UserDetailPage() {
              setLoading(false);
         });
 
-        const offersListener = onValue(offersRef, (snapshot) => {
+        // User's published offers listener
+        const userOffersListener = onValue(offersRef, (snapshot) => {
             const offersList: JobOffer[] = [];
             if (snapshot.exists()) {
-                const offersData = snapshot.val();
-                const userRef = ref(db, `Usuarios/${userId}`);
-                
-                onValue(userRef, (userSnapshot) => {
-                    const employerData = userSnapshot.val();
+                const allOffersData = snapshot.val();
+                const employerData = usersData[userId];
 
-                    Object.keys(offersData).forEach(key => {
-                        const fbOffer: FirebaseJobOffer = offersData[key];
-                        if (fbOffer.employerId === userId) {
-                            offersList.push({
-                                id: fbOffer.id,
-                                title: fbOffer.cargo,
-                                employer: {
-                                    id: userId,
-                                    name: employerData?.nombre_completo || 'Usuario Desconocido',
-                                    email: employerData?.email || 'Email no disponible',
-                                    avatarUrl: employerData?.fotoPerfilUrl || ''
-                                },
-                                location: fbOffer.ubicacion,
-                                modality: fbOffer.modalidad,
-                                approxPayment: fbOffer.pago_aprox,
-                                postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
-                                status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
-                            });
-                        }
-                    });
-                     setUserOffers(offersList.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()));
-                }, { onlyOnce: true });
+                Object.keys(allOffersData).forEach(key => {
+                    const fbOffer: FirebaseJobOffer = allOffersData[key];
+                    if (fbOffer.employerId === userId) {
+                        offersList.push({
+                            id: fbOffer.id,
+                            title: fbOffer.cargo,
+                            employer: {
+                                id: userId,
+                                name: employerData?.nombre_completo || 'Usuario Desconocido',
+                                email: employerData?.email || 'Email no disponible',
+                                avatarUrl: employerData?.fotoPerfilUrl || ''
+                            },
+                            location: fbOffer.ubicacion,
+                            modality: fbOffer.modalidad,
+                            approxPayment: fbOffer.pago_aprox,
+                            postedDate: format(new Date(fbOffer.createdAt), 'yyyy-MM-dd'),
+                            status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
+                        });
+                    }
+                });
+                 setUserOffers(offersList.sort((a, b) => new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime()));
             }
         });
+        
+        // User's applications listener
+        const postulationsListener = onValue(postulationsRef, (snapshot) => {
+            if (!snapshot.exists()) {
+                setUserPostulations([]);
+                return;
+            }
+
+            const postulationsData = snapshot.val();
+            const postulationsList: Postulation[] = [];
+
+            Object.keys(postulationsData).forEach(key => {
+                const fbPostulation: FirebasePostulation = postulationsData[key];
+                
+                if (fbPostulation.postulanteId === userId) {
+                    const applicant = usersData[fbPostulation.postulanteId];
+                    const offer = offersData[fbPostulation.offerId];
+                    const employer = offer ? usersData[offer.employerId] : undefined;
+
+                    postulationsList.push({
+                      id: key,
+                      applicant: {
+                        id: applicant?.uid || fbPostulation.postulanteId,
+                        name: applicant?.nombre_completo || 'Usuario Desconocido',
+                        email: applicant?.email || 'Email no disponible',
+                        avatarUrl: applicant?.fotoPerfilUrl || ''
+                      },
+                      offer: {
+                        id: offer?.id || fbPostulation.offerId,
+                        title: offer?.cargo || 'Oferta Desconocida',
+                        employer: {
+                            id: employer?.uid || offer?.employerId || '',
+                            name: employer?.nombre_completo || 'Publicador Desconocido',
+                            email: employer?.email || '',
+                            avatarUrl: employer?.fotoPerfilUrl || ''
+                        },
+                        location: offer?.ubicacion || '',
+                        modality: offer?.modalidad || '',
+                        approxPayment: offer?.pago_aprox || '',
+                        postedDate: offer ? format(new Date(offer.createdAt), 'yyyy-MM-dd') : 'Fecha desconocida',
+                        status: offer?.estado === 'ACTIVA' ? 'Activa' : 'Cerrada'
+                      },
+                      postulationDate: fbPostulation.fechaPostulacion ? format(new Date(fbPostulation.fechaPostulacion), 'yyyy-MM-dd HH:mm') : 'Fecha desconocida',
+                      postulationStatus: fbPostulation.estado_postulacion || 'Enviada',
+                    });
+                }
+            });
+            setUserPostulations(postulationsList.sort((a, b) => new Date(b.postulationDate).getTime() - new Date(a.postulationDate).getTime()));
+        });
+
 
         return () => {
             off(userRef, 'value', userListener);
-            off(offersRef, 'value', offersListener);
+            off(offersRef, 'value', userOffersListener);
+            off(postulationsRef, 'value', postulationsListener);
+            off(usersRef, 'value', allUsersListener);
+            off(offersRef, 'value', allOffersListener);
         };
 
     }, [userId]);
@@ -275,7 +342,7 @@ export default function UserDetailPage() {
             <UserEditDialog user={user} isOpen={isEditOpen} setIsOpen={setIsEditOpen} />
             
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Perfil de Publicador</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Perfil de {user.userType === 'empleador' ? 'Publicador' : 'Usuario'}</h1>
                  <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" onClick={() => setIsEditOpen(true)}>
                         <Edit size={16} className="mr-2"/>
@@ -354,15 +421,29 @@ export default function UserDetailPage() {
                 </CardContent>
             </Card>
 
+            {user.userType === 'empleador' && (
+                <div className="space-y-4">
+                    <h2 className="text-2xl font-bold tracking-tight">Ofertas Publicadas ({userOffers.length})</h2>
+                    <DataTable
+                        columns={userOfferColumns}
+                        data={userOffers}
+                        filterColumn="title"
+                        filterPlaceholder="Filtrar ofertas publicadas..."
+                    />
+                </div>
+            )}
+            
             <div className="space-y-4">
-                <h2 className="text-2xl font-bold tracking-tight">Ofertas Publicadas ({userOffers.length})</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Postulaciones Realizadas ({userPostulations.length})</h2>
                 <DataTable
-                    columns={userOfferColumns}
-                    data={userOffers}
-                    filterColumn="title"
-                    filterPlaceholder="Filtrar ofertas de este usuario..."
+                    columns={userPostulationColumns}
+                    data={userPostulations}
+                    filterColumn="offer.title"
+                    filterPlaceholder="Filtrar postulaciones..."
                 />
             </div>
         </div>
     );
 }
+
+    
