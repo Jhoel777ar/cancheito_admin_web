@@ -32,6 +32,7 @@ import {
   LogOut,
   LifeBuoy,
   UserCheck,
+  ClipboardList,
 } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -62,6 +63,7 @@ export default function DashboardLayout({
     { href: "/dashboard/users", label: "Usuarios", icon: Users },
     { href: "/dashboard/verify-users", label: "Verificar Usuarios", icon: UserCheck },
     { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
+    { href: "/dashboard/postulations", label: "Postulaciones", icon: ClipboardList },
   ];
   
   // Effect for user notifications

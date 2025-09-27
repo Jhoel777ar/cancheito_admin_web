@@ -75,3 +75,27 @@ export type FirebaseJobOffer = {
   pago_aprox: string;
   ubicacion: string;
 }
+
+// Data types for Postulations
+export type FirebasePostulation = {
+    id: string;
+    applicantId: string;
+    offerId: string;
+    postulationDate: number;
+    status: 'Enviada' | 'Revisada' | 'Rechazada';
+}
+
+export type ApplicantProfile = {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+}
+
+export type Postulation = {
+    id: string;
+    applicant: ApplicantProfile;
+    offer: JobOffer;
+    postulationDate: string;
+    status: string;
+}
