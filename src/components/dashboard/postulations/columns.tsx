@@ -64,9 +64,15 @@ export const postulationColumns: ColumnDef<Postulation>[] = [
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => {
-      const status: string = row.getValue("status");
-      // You can customize badge variants based on status
-      return <Badge variant="outline">{status}</Badge>;
+      const status = row.getValue("status") as string;
+      const variant = {
+        'Aceptada': 'secondary',
+        'Rechazada': 'destructive',
+        'Revisada': 'default',
+        'Enviada': 'outline',
+      }[status] || 'outline';
+
+      return <Badge variant={variant as "secondary" | "destructive" | "default" | "outline"}>{status}</Badge>;
     },
   },
 ];

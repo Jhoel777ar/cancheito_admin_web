@@ -1,4 +1,5 @@
 
+
 export type User = {
   id: string;
   fullName: string;
@@ -81,8 +82,8 @@ export type FirebasePostulation = {
     id: string;
     applicantId: string;
     offerId: string;
-    fechaPostulacion: number; // Corrected field name
-    status: 'Enviada' | 'Revisada' | 'Rechazada';
+    fechaPostulacion: number; 
+    status?: 'Enviada' | 'Revisada' | 'Rechazada' | 'Aceptada'; // This field will hold the postulation status
 }
 
 export type ApplicantProfile = {

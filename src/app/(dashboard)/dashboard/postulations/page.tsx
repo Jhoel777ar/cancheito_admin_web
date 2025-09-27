@@ -72,7 +72,7 @@ export default function PostulationsPage() {
       
       const postulationsData = snapshot.val();
       const postulationsList: Postulation[] = Object.keys(postulationsData).map(key => {
-        const fbPostulationData = postulationsData[key];
+        const fbPostulationData: FirebasePostulation = postulationsData[key];
         
         // Derive applicantId from the composite key if not present in the object
         const applicantId = fbPostulationData.applicantId || key.split('_')[1];
