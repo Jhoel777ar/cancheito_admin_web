@@ -34,6 +34,7 @@ import {
   UserCheck,
   ClipboardList,
   Bell,
+  FileBarChart,
 } from "lucide-react";
 import { auth, db } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
@@ -88,6 +89,7 @@ export default function DashboardLayout({
     { href: "/dashboard/verify-users", label: "Verificar Usuarios", icon: UserCheck },
     { href: "/dashboard/offers", label: "Ofertas", icon: Briefcase },
     { href: "/dashboard/postulations", label: "Postulaciones", icon: ClipboardList },
+    { href: "/dashboard/reports", label: "Reportes", icon: FileBarChart },
   ];
   
   // Effect for user notifications
@@ -320,5 +322,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-    

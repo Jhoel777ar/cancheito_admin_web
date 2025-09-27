@@ -100,5 +100,3 @@ export type Postulation = {
     postulationDate: string;
     postulationStatus: string;
 }
-
-    
