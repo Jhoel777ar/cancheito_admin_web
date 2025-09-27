@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { DateRange } from "react-day-picker";
-import { subDays, format, startOfDay, isWithinInterval, eachDayOfInterval } from "date-fns";
+import { subDays, format, startOfDay, endOfDay, isWithinInterval, eachDayOfInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import { db } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
@@ -87,7 +87,10 @@ export default function ReportsPage() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [allOffers, setAllOffers] = useState<JobOffer[]>([]);
     const [allPostulations, setAllPostulations] = useState<Postulation[]>([]);
-    const [usersMap, setUsersMap] = useState(new Map());
+    
+    // Using refs to hold maps to avoid re-triggering effects unnecessarily
+    const usersMapRef = useRef(new Map<string, User>());
+    const offersMapRef = useRef(new Map<string, JobOffer>());
 
     useEffect(() => {
         const usersRef = ref(db, 'Usuarios');
@@ -122,11 +125,14 @@ export default function ReportsPage() {
                 }
             });
             
-            const newUsersMap = new Map();
-            usersList.forEach(user => newUsersMap.set(user.id, user));
+            usersMapRef.current.clear();
+            usersList.forEach(user => usersMapRef.current.set(user.id, user));
             
             setAllUsers(usersList);
-            setUsersMap(newUsersMap);
+            initialDataLoaded.users = true;
+            checkAllDataLoaded();
+        }, (error) => {
+            console.error("Firebase users read error:", error);
             initialDataLoaded.users = true;
             checkAllDataLoaded();
         });
@@ -135,7 +141,7 @@ export default function ReportsPage() {
             const offersData = snapshot.val() || {};
             const offersList: JobOffer[] = Object.keys(offersData).map(key => {
                 const fbOffer: FirebaseJobOffer = offersData[key];
-                const employer = usersMap.get(fbOffer.employerId);
+                const employer = usersMapRef.current.get(fbOffer.employerId);
                 return {
                     id: fbOffer.id,
                     title: fbOffer.cargo,
@@ -152,7 +158,14 @@ export default function ReportsPage() {
                     status: fbOffer.estado === 'ACTIVA' ? 'Activa' : 'Cerrada',
                 };
             });
+
+            offersMapRef.current.clear();
+            offersList.forEach(offer => offersMapRef.current.set(offer.id, offer));
             setAllOffers(offersList);
+            initialDataLoaded.offers = true;
+            checkAllDataLoaded();
+        }, (error) => {
+            console.error("Firebase offers read error:", error);
             initialDataLoaded.offers = true;
             checkAllDataLoaded();
         });
@@ -161,8 +174,8 @@ export default function ReportsPage() {
              const postulationsData = snapshot.val() || {};
              const postulationsList: Postulation[] = Object.keys(postulationsData).map(key => {
                  const fbPostulation: FirebasePostulation = postulationsData[key];
-                 const applicant = usersMap.get(fbPostulation.postulanteId);
-                 const offer = allOffers.find(o => o.id === fbPostulation.offerId);
+                 const applicant = usersMapRef.current.get(fbPostulation.postulanteId);
+                 const offer = offersMapRef.current.get(fbPostulation.offerId);
                  return {
                     id: key,
                     applicant: {
@@ -188,6 +201,10 @@ export default function ReportsPage() {
              setAllPostulations(postulationsList);
              initialDataLoaded.postulations = true;
              checkAllDataLoaded();
+        }, (error) => {
+            console.error("Firebase postulations read error:", error);
+            initialDataLoaded.postulations = true;
+            checkAllDataLoaded();
         });
 
         return () => {
@@ -195,14 +212,13 @@ export default function ReportsPage() {
             off(offersRef, 'value', offersListener);
             off(postulationsRef, 'value', postulationsListener);
         }
-
-    }, [usersMap, allOffers]); // Dependencies to re-enrich data if base data changes
+    }, []);
 
     const filteredData = useMemo(() => {
         if (!date?.from || !date?.to) {
             return { users: [], offers: [], postulations: [], chartData: { users: [], offers: [], postulations: [] } };
         }
-        const interval = { start: startOfDay(date.from), end: startOfDay(date.to) };
+        const interval = { start: startOfDay(date.from), end: endOfDay(date.to) };
 
         const users = allUsers.filter(u => isWithinInterval(new Date(u.registrationDate), interval));
         const offers = allOffers.filter(o => isWithinInterval(new Date(o.postedDate), interval));
@@ -248,18 +264,18 @@ export default function ReportsPage() {
         }
 
         const usersCsv = Papa.unparse({
-            fields: ["ID", "Nombre Completo", "Email", "Fecha de Registro", "Tipo", "Verificado"],
-            data: users.map(u => [u.id, u.fullName, u.email, u.registrationDate, u.userType, u.isVerified])
+            fields: ["ID Usuario", "Nombre Completo", "Email", "Fecha Registro", "Tipo Usuario", "Estado Cuenta", "Verificado", "Ubicación", "Formación", "Experiencia"],
+            data: users.map(u => [u.id, u.fullName, u.email, u.registrationDate, u.userType, u.accountState, u.isVerified, u.location, u.education, u.experience])
         });
 
         const offersCsv = Papa.unparse({
-            fields: ["ID", "Cargo", "Publicador", "Fecha de Publicación", "Estado"],
-            data: offers.map(o => [o.id, o.title, o.employer.name, o.postedDate, o.status])
+            fields: ["ID Oferta", "Cargo", "ID Publicador", "Nombre Publicador", "Email Publicador", "Fecha Publicación", "Estado Oferta", "Ubicación", "Modalidad", "Pago Aprox."],
+            data: offers.map(o => [o.id, o.title, o.employer.id, o.employer.name, o.employer.email, o.postedDate, o.status, o.location, o.modality, o.approxPayment])
         });
 
         const postulationsCsv = Papa.unparse({
-            fields: ["ID", "Postulante", "Oferta", "Publicador", "Fecha de Postulación", "Estado"],
-            data: postulations.map(p => [p.id, p.applicant.name, p.offer.title, p.offer.employer.name, p.postulationDate, p.postulationStatus])
+            fields: ["ID Postulación", "ID Postulante", "Nombre Postulante", "Email Postulante", "ID Oferta", "Título Oferta", "ID Publicador", "Nombre Publicador", "Fecha Postulación", "Estado Postulación"],
+            data: postulations.map(p => [p.id, p.applicant.id, p.applicant.name, p.applicant.email, p.offer.id, p.offer.title, p.offer.employer.id, p.offer.employer.name, p.postulationDate, p.postulationStatus])
         });
 
         const csvString = [
@@ -271,11 +287,13 @@ export default function ReportsPage() {
             postulationsCsv
         ].join("\n");
         
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", `reporte_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        const fromDate = date?.from ? format(date.from, 'yyyy-MM-dd') : '';
+        const toDate = date?.to ? format(date.to, 'yyyy-MM-dd') : '';
+        link.setAttribute("download", `reporte_${fromDate}_a_${toDate}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -353,12 +371,11 @@ export default function ReportsPage() {
             </Card>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
-                <ChartCard title="Tendencia de Usuarios" data={filteredData.chartData.users} dataKey="Usuarios" name="Usuarios" color="#8884d8"/>
-                <ChartCard title="Tendencia de Ofertas" data={filteredData.chartData.offers} dataKey="Ofertas" name="Ofertas" color="#82ca9d"/>
-                <ChartCard title="Tendencia de Postulaciones" data={filteredData.chartData.postulations} dataKey="Postulaciones" name="Postulaciones" color="#ffc658"/>
+                <ChartCard title="Tendencia de Usuarios" data={filteredData.chartData.users} dataKey="Usuarios" name="Usuarios" color="hsl(var(--chart-1))"/>
+                <ChartCard title="Tendencia de Ofertas" data={filteredData.chartData.offers} dataKey="Ofertas" name="Ofertas" color="hsl(var(--chart-2))"/>
+                <ChartCard title="Tendencia de Postulaciones" data={filteredData.chartData.postulations} dataKey="Postulaciones" name="Postulaciones" color="hsl(var(--chart-4))"/>
             </div>
 
         </div>
     );
 }
-
