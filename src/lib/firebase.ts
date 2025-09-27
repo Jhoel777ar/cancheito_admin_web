@@ -5,14 +5,14 @@ import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBCde7G-kTXV1LIwceda-ODi8aYT0qzBpc",
-  authDomain: "cancheito-75c44.firebaseapp.com",
-  databaseURL: "https://cancheito-75c44-default-rtdb.firebaseio.com",
-  projectId: "cancheito-75c44",
-  storageBucket: "cancheito-75c44.firebasestorage.app",
-  messagingSenderId: "451600479024",
-  appId: "1:451600479024:web:1da9cc69c2737eb227cef5",
-  measurementId: "G-NXTTES1DRS"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
